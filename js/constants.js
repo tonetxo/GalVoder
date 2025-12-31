@@ -1,0 +1,41 @@
+// Constants
+const CONSTANTS = {
+    BAND_COUNT: 20,
+    BAND_FREQUENCIES: [120, 180, 280, 380, 500, 650, 850, 1100, 1450, 1800, 2200, 2700, 3400, 4200, 5200, 6500, 8000, 10000, 13000, 16000],
+    FFT_SIZE: 512,
+    VU_FFT_SIZE: 32,
+    BANDPASS_FFT_SIZE: 64,
+    NOISE_THRESHOLD: 0.05,
+    PITCH_MIN: 50,
+    PITCH_MAX: 400,
+    PITCH_DEFAULT: 140,
+    INTENSITY_MIN: 0.2,
+    INTENSITY_MAX: 1.2,
+    INTENSITY_DEFAULT: 0.6,
+    ECHO_MAX: 0.7,
+    VIBRATO_MAX: 120,
+    PRE_AMP_GAIN: 1.0,
+    MASTER_GAIN: 0.2,
+    COMPRESSOR_THRESHOLD: -30,
+    COMPRESSOR_KNEE: 10,
+    COMPRESSOR_RATIO: 15,
+    COMPRESSOR_ATTACK: 0.001,
+    COMPRESSOR_RELEASE: 0.1,
+    LIMITER_THRESHOLD: -3.0,
+    LIMITER_RATIO: 20,
+    VIBRATO_FREQ: 6.0,
+    ECHO_DELAY: 0.3,
+    MAX_RETRY_ATTEMPTS: 5,
+    RETRY_DELAY_BASE: 1000,
+    MAX_GAIN_MULTIPLIER: 1.5,
+    VU_MIN_ANGLE: -50,
+    VU_MAX_ANGLE: 50,
+    CANVAS_LINE_WIDTH: 1.5,
+    CANVAS_STROKE_COLOR: '#cd7f32'
+};
+
+// API configuration - can be left empty if AI features are not needed
+const API_CONFIG = {
+    apiKey: "", // Leave empty to disable AI features
+    model: "gemini-2.5-flash-preview-09-2025"
+};

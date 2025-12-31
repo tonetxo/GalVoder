@@ -1,0 +1,168 @@
+:root {
+    --bronze: #cd7f32;
+    --copper: #b87333;
+    --brass: #e1b365;
+    --dark-steel: #1a1a1a;
+    --rust: #8b4513;
+    --glow-green: #0f0;
+    --ai-glow: #00f2ff;
+}
+
+body {
+    background-color: var(--dark-steel);
+    color: var(--brass);
+    font-family: 'Special Elite', cursive;
+    background-image: radial-gradient(circle at center, #2a2a2a 0%, #101010 100%);
+    overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.steampunk-container {
+    width: 100%;
+    max-width: 1100px;
+    background: #2b2319;
+    border: 8px solid var(--copper);
+    box-shadow: 0 0 60px rgba(0,0,0,1), inset 0 0 40px rgba(0,0,0,0.6);
+    padding: 1.5rem;
+    position: relative;
+    border-radius: 4px;
+}
+
+.rivet {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: var(--copper);
+    border-radius: 50%;
+    box-shadow: inset -2px -2px 2px rgba(0,0,0,0.6), 1px 1px 2px rgba(255,255,255,0.3);
+}
+
+.xy-pad {
+    width: 100%;
+    height: 320px;
+    background: #050505;
+    border: 5px solid var(--rust);
+    position: relative;
+    cursor: crosshair;
+    overflow: hidden;
+    touch-action: none;
+    box-shadow: inset 0 0 50px #000;
+}
+
+.xy-handle {
+    width: 30px;
+    height: 30px;
+    background: radial-gradient(circle at 30% 30%, var(--brass), var(--rust));
+    border: 2px solid #fff;
+    border-radius: 50%;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    box-shadow: 0 0 25px var(--bronze);
+    transition: left 0.3s ease-out, top 0.3s ease-out;
+}
+
+.parameter-select {
+    background: #1a1510;
+    color: var(--brass);
+    border: 2px solid var(--copper);
+    padding: 6px;
+    font-size: 0.8rem;
+    outline: none;
+    cursor: pointer;
+}
+
+.vu-meter {
+    width: 100%;
+    height: 70px;
+    background: #f4ecd8;
+    border: 4px solid var(--rust);
+    position: relative;
+    overflow: hidden;
+    border-radius: 5px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+}
+
+.vu-needle {
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    width: 2px;
+    height: 60px;
+    background: #d00;
+    transform-origin: bottom center;
+    transform: rotate(-50deg);
+    transition: transform 0.04s cubic-bezier(0, 0.5, 0.5, 1);
+}
+
+.status-light {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #200;
+}
+
+.status-light.on {
+    background: var(--glow-green);
+    box-shadow: 0 0 12px var(--glow-green);
+}
+
+.button-steampunk {
+    background: linear-gradient(to bottom, #4a3520, #2b1d0e);
+    color: var(--brass);
+    font-weight: bold;
+    border: 1px solid #111;
+    box-shadow: 0 4px 0 #111;
+    transition: all 0.1s;
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+.button-steampunk.active {
+    background: linear-gradient(to bottom, var(--copper), var(--rust));
+    color: #000;
+    box-shadow: 0 0 15px var(--copper), 0 2px 0 #111;
+    transform: translateY(2px);
+    opacity: 1;
+}
+
+.ai-panel {
+    background: rgba(0, 20, 30, 0.8);
+    border: 2px solid var(--ai-glow);
+    padding: 15px;
+    border-radius: 4px;
+    margin-top: 20px;
+    position: relative;
+}
+
+#ai-output {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid #00f2ff44;
+    padding: 10px;
+    font-size: 0.8rem;
+    min-height: 60px;
+    color: var(--ai-glow);
+}
+
+.knob-label { font-size: 10px; text-transform: uppercase; color: var(--bronze); letter-spacing: 1px; }
+
+.loading-spinner {
+    border: 3px solid rgba(0, 242, 255, 0.1);
+    border-top: 3px solid var(--ai-glow);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
