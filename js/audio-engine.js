@@ -13,13 +13,13 @@ class VocoderEngine {
         this.bands = CONSTANTS.BAND_COUNT;
         this.bandFrequencies = CONSTANTS.BAND_FREQUENCIES;
         this.filterNodes = [];
-        this.params = { 
-            pitch: CONSTANTS.PITCH_DEFAULT, 
-            intensity: CONSTANTS.INTENSITY_DEFAULT, 
-            vibrato: 0, 
-            tremolo: 0, 
-            echo: 0, 
-            wave: 'sawtooth' 
+        this.params = {
+            pitch: CONSTANTS.PITCH_DEFAULT,
+            intensity: CONSTANTS.INTENSITY_DEFAULT,
+            vibrato: 0,
+            tremolo: 0,
+            echo: 0,
+            wave: 'sawtooth'
         };
         this.modLevel = 0;
         this.noiseThreshold = CONSTANTS.NOISE_THRESHOLD;
@@ -36,7 +36,7 @@ class VocoderEngine {
      * @returns {Promise<AudioContext>} The initialized audio context
      */
     async create() {
-        if (this.ctx) { try { await this.ctx.close(); } catch(e) {} }
+        if (this.ctx) { try { await this.ctx.close(); } catch (e) { } }
         this.ctx = new (window.AudioContext || window.webkitAudioContext)();
 
         const now = this.ctx.currentTime;
@@ -91,6 +91,11 @@ class VocoderEngine {
         this.carrier = this.ctx.createOscillator();
         this.carrier.type = String(this.params.wave || 'sawtooth');
         this.carrier.frequency.setTargetAtTime(Number(this.params.pitch || CONSTANTS.PITCH_DEFAULT), now, 0);
+        // Ganancia del carrier (1.0 = activo)
+        this.carrierGain = this.ctx.createGain();
+        this.carrierGain.gain.setTargetAtTime(1.0, now, 0); // ACTIVADO
+        this.carrier.connect(this.carrierGain);
+        console.log('[VOCODER] Carrier ACTIVO (gain=1)');
 
         this.vibratoOsc = this.ctx.createOscillator();
         this.vibratoGain = this.ctx.createGain();
@@ -113,30 +118,36 @@ class VocoderEngine {
         this.filterNodes = [];
         for (let i = 0; i < this.bands; i++) {
             const freq = Number(this.bandFrequencies[i]);
+
+            // Modulator path: analyze the input signal
             const modFilter = this.ctx.createBiquadFilter();
             modFilter.type = "bandpass";
             modFilter.frequency.setTargetAtTime(freq, now, 0);
-            modFilter.Q.setTargetAtTime(15, now, 0);
+            modFilter.Q.setTargetAtTime(12, now, 0); // Q=12 para mejor selectividad
 
             const modAnalyser = this.ctx.createAnalyser();
             modAnalyser.fftSize = CONSTANTS.BANDPASS_FFT_SIZE;
             modFilter.connect(modAnalyser);
             this.inputCompressor.connect(modFilter);
 
+            // Carrier path: generate and filter the carrier signal
             const carFilter = this.ctx.createBiquadFilter();
             carFilter.type = "bandpass";
             carFilter.frequency.setTargetAtTime(freq, now, 0);
-            carFilter.Q.setTargetAtTime(15, now, 0);
+            carFilter.Q.setTargetAtTime(12, now, 0); // Q=12 para mejor selectividad
 
+            // Gain node to control the amplitude of this frequency band
             const bandGain = this.ctx.createGain();
             bandGain.gain.setTargetAtTime(0, now, 0);
 
-            this.carrier.connect(carFilter);
+            // Connect carrierGain -> carrier filter -> gain -> master out
+            this.carrierGain.connect(carFilter);
             carFilter.connect(bandGain);
             bandGain.connect(this.masterOut);
 
-            this.filterNodes.push({ modAnalyser, bandGain });
+            this.filterNodes.push({ modFilter, modAnalyser, bandGain });
         }
+
         this.carrier.start();
     }
 
@@ -159,7 +170,7 @@ class VocoderEngine {
                 this.micSource = this.ctx.createMediaStreamSource(this.micStream);
                 this.micSource.connect(this.preAmp);
                 return "CONNECTED";
-            } catch(e) {
+            } catch (e) {
                 console.error("MIC_ERROR:", e);
                 if (e.name === 'NotAllowedError') return "PERMISSION_DENIED";
                 if (e.name === 'NotFoundError') return "NO_DEVICE";
@@ -167,7 +178,7 @@ class VocoderEngine {
             }
         } else {
             if (this.micSource) {
-                try { this.micSource.disconnect(); } catch(e){}
+                try { this.micSource.disconnect(); } catch (e) { }
                 this.micSource = null;
             }
             if (this.micStream) {
@@ -193,7 +204,7 @@ class VocoderEngine {
             return true;
         } else {
             if (this.fileSource) {
-                try { this.fileSource.stop(); } catch(e) {}
+                try { this.fileSource.stop(); } catch (e) { }
                 this.fileSource.disconnect();
                 this.fileSource = null;
             }
@@ -203,34 +214,72 @@ class VocoderEngine {
 
     /**
      * Starts the main audio processing loop
-     * This function continuously analyzes the modulator signal and applies its 
+     * This function continuously analyzes the modulator signal and applies its
      * spectral characteristics to the carrier signal in real-time
      */
     runEngine() {
-        const data = new Uint8Array(2);
+        const vuData = new Uint8Array(256);
+        let debugCounter = 0;
         const process = () => {
             if (!this.initialized || this.ctx.state !== 'running') {
                 requestAnimationFrame(process);
                 return;
             }
-            if (this.vuAnalyser) {
-                this.vuAnalyser.getByteFrequencyData(data);
-                this.modLevel = data[0] / 255;
-            }
-            const now = this.ctx.currentTime;
-            this.filterNodes.forEach(band => {
-                band.modAnalyser.getByteFrequencyData(data);
-                let level = data[0] / 255;
 
-                // Puerta de ruido más estricta para evitar sonido constante
-                if (this.modLevel < this.noiseThreshold || level < 0.1) {
+            // Calculate overall modulator level for VU meter
+            if (this.vuAnalyser) {
+                this.vuAnalyser.getByteFrequencyData(vuData);
+                let sum = 0;
+                for (let i = 0; i < 32; i++) {
+                    sum += vuData[i];
+                }
+                this.modLevel = (sum / 32) / 255;
+            }
+
+            // Debug cada 60 frames (~1 segundo)
+            debugCounter++;
+            if (debugCounter % 60 === 0) {
+                console.log('[VOCODER DEBUG] modLevel:', this.modLevel.toFixed(3),
+                    'threshold:', this.noiseThreshold,
+                    'intensity:', this.params.intensity);
+            }
+
+            const now = this.ctx.currentTime;
+
+            // Process each frequency band
+            const bandLevels = [];
+            this.filterNodes.forEach((band, index) => {
+                const bandData = new Uint8Array(band.modAnalyser.frequencyBinCount);
+                band.modAnalyser.getByteFrequencyData(bandData);
+
+                // Sum all bins to get total energy in this band
+                let sum = 0;
+                for (let i = 0; i < bandData.length; i++) {
+                    sum += bandData[i];
+                }
+                let level = bandData.length > 0 ? (sum / bandData.length) / 255 : 0;
+
+                // Puerta de ruido: silenciar si no hay señal moduladora
+                if (this.modLevel < this.noiseThreshold) {
                     level = 0;
                 }
 
-                // Multiplicador bajado a 1.5 para evitar saturación por suma
+                // Apply intensity scaling and gain multiplier
                 const targetGain = level * Number(this.params.intensity || CONSTANTS.INTENSITY_DEFAULT) * CONSTANTS.MAX_GAIN_MULTIPLIER;
+
+                // Guardar para debug
+                if (index === 0 || index === 5 || index === 10 || index === 15 || index === 19) {
+                    bandLevels.push({ band: index, level: level.toFixed(3), gain: targetGain.toFixed(2) });
+                }
+
                 band.bandGain.gain.setTargetAtTime(targetGain, now, targetGain > 0 ? 0.005 : 0.05);
             });
+
+            // Debug: mostrar niveles de varias bandas cada segundo
+            if (debugCounter % 60 === 0 && this.modLevel > this.noiseThreshold) {
+                console.log('[BANDS] modLevel:', this.modLevel.toFixed(3), 'Bands:', bandLevels);
+            }
+
             requestAnimationFrame(process);
         };
         process();
@@ -241,20 +290,25 @@ class VocoderEngine {
      * @param {Object} p - Object containing parameter updates (pitch, intensity, vibrato, tremolo, echo, wave)
      */
     updateParams(p) {
+        console.log('[updateParams] Recibido:', p);
         Object.assign(this.params, p);
         if (!this.initialized || !this.ctx) return;
         const now = this.ctx.currentTime;
         if (this.carrier && Number.isFinite(this.params.pitch)) {
             this.carrier.frequency.setTargetAtTime(Number(this.params.pitch), now, 0.05);
+            console.log('[updateParams] Pitch:', this.params.pitch);
         }
         if (this.vibratoGain && Number.isFinite(this.params.vibrato)) {
             this.vibratoGain.gain.setTargetAtTime(Number(this.params.vibrato) * CONSTANTS.VIBRATO_MAX, now, 0.05);
+            console.log('[updateParams] Vibrato:', this.params.vibrato * CONSTANTS.VIBRATO_MAX);
         }
         if (this.echoFeedback && Number.isFinite(this.params.echo)) {
             this.echoFeedback.gain.setTargetAtTime(Number(this.params.echo) * CONSTANTS.ECHO_MAX, now, 0.05);
+            console.log('[updateParams] Echo:', this.params.echo * CONSTANTS.ECHO_MAX);
         }
         if (this.carrier && this.params.wave) {
             this.carrier.type = String(this.params.wave);
+            console.log('[updateParams] Wave:', this.carrier.type);
         }
     }
 }

@@ -10,7 +10,7 @@ class UIController {
         this.engine = engine;
         this.micActive = false;
         this.fileActive = false;
-        
+
         // Cache DOM elements
         this.btnPower = document.getElementById('btn-power');
         this.needle = document.getElementById('vu-needle');
@@ -18,7 +18,7 @@ class UIController {
         this.ledPower = document.getElementById('led-master');
         this.pad = document.getElementById('pad');
         this.handle = document.getElementById('pad-handle');
-        
+
         this.initializeEventListeners();
     }
 
@@ -92,14 +92,21 @@ class UIController {
                     try {
                         this.engine.fileBuffer = await this.engine.ctx.decodeAudioData(ev.target.result);
                         this.msgBox.innerText = "CILINDRO PREPARADO PARA INDUCCIÓN";
-                    } catch(err) {
+                    } catch (err) {
                         this.msgBox.innerText = "ERROR AL DECODIFICAR ARCHIVO";
                     }
                 };
                 reader.readAsArrayBuffer(file);
             }
         });
-        
+
+        // Wave type selector event listener
+        document.getElementById('wave-type').addEventListener('change', (e) => {
+            const waveType = e.target.value;
+            console.log('[UI] Wave type changed to:', waveType);
+            this.engine.updateParams({ wave: waveType });
+        });
+
         // AI button event listeners
         document.getElementById('btn-ai-message').addEventListener('click', async () => {
             // Check if API key is configured before attempting to call AI
@@ -107,13 +114,13 @@ class UIController {
                 document.getElementById('ai-output').innerText = "API key no configurada. Por favor, introduce una clave de API para habilitar las funciones de IA.";
                 return;
             }
-            
+
             document.getElementById('ai-status').classList.remove('hidden');
             try {
                 const text = await callGemini("Genera una frase críptica y steampunk para un vocoder. Máximo 10 palabras.");
                 document.getElementById('ai-output').innerText = `"${text}"`;
-            } catch (e) { 
-                document.getElementById('ai-output').innerText = e.message.includes("API key not configured") ? 
+            } catch (e) {
+                document.getElementById('ai-output').innerText = e.message.includes("API key not configured") ?
                     "Funciones de IA deshabilitadas. Introduce una clave de API para activarlas." : "Enlace fallido.";
             }
             document.getElementById('ai-status').classList.add('hidden');
@@ -125,7 +132,7 @@ class UIController {
                 document.getElementById('ai-output').innerText = "API key no configurada. Por favor, introduce una clave de API para habilitar las funciones de IA.";
                 return;
             }
-            
+
             const vibe = document.getElementById('ai-vibe-input').value || "Robot victoriano";
             document.getElementById('ai-status').classList.remove('hidden');
             try {
@@ -136,13 +143,13 @@ class UIController {
                 this.engine.updateParams({ wave: data.wave, pitch: Number(data.pitch_val) });
                 movePad({ x: Number(data.x_pos), y: Number(data.y_pos) }, true);
                 document.getElementById('ai-output').innerText = data.explanation;
-            } catch (e) { 
-                document.getElementById('ai-output').innerText = e.message.includes("API key not configured") ? 
+            } catch (e) {
+                document.getElementById('ai-output').innerText = e.message.includes("API key not configured") ?
                     "Funciones de IA deshabilitadas. Introduce una clave de API para activarlas." : "Calibración fallida.";
             }
             document.getElementById('ai-status').classList.add('hidden');
         });
-        
+
         // Pad event listeners
         this.pad.addEventListener('mousedown', () => this.pad.addEventListener('mousemove', movePad));
         window.addEventListener('mouseup', () => this.pad.removeEventListener('mousemove', movePad));

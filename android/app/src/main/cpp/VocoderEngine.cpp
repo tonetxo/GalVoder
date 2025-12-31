@@ -1,0 +1,178 @@
+#include "VocoderEngine.h"
+#include <algorithm>
+#include <android/log.h>
+
+#define LOG_TAG "VocoderEngine"
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+
+VocoderEngine::VocoderEngine() {
+  mProcessor = std::make_unique<VocoderProcessor>(kSampleRate);
+  mInputBuffer.resize(kFramesPerBuffer);
+  mOutputBuffer.resize(kFramesPerBuffer);
+  mWaveformBuffer.resize(256);
+  LOGI("VocoderEngine created");
+}
+
+VocoderEngine::~VocoderEngine() {
+  stop();
+  LOGI("VocoderEngine destroyed");
+}
+
+bool VocoderEngine::start() {
+  if (mIsRunning)
+    return true;
+
+  createStreams();
+
+  if (mInputStream && mOutputStream) {
+    auto res1 = mInputStream->requestStart();
+    auto res2 = mOutputStream->requestStart();
+
+    if (res1 == oboe::Result::OK && res2 == oboe::Result::OK) {
+      mIsRunning = true;
+      LOGI("VocoderEngine started successfully");
+      return true;
+    } else {
+      LOGE("Failed to requestStart: input=%d, output=%d", (int)res1, (int)res2);
+    }
+  }
+
+  LOGE("Failed to start VocoderEngine - streams null or open failed");
+  return false;
+}
+
+void VocoderEngine::stop() {
+  if (!mIsRunning)
+    return;
+
+  mIsRunning = false;
+  closeStreams();
+  LOGI("VocoderEngine stopped");
+}
+
+void VocoderEngine::createStreams() {
+  // Crear stream de entrada (micrófono)
+  oboe::AudioStreamBuilder inputBuilder;
+  inputBuilder.setDirection(oboe::Direction::Input)
+      ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
+      ->setSharingMode(oboe::SharingMode::Exclusive)
+      ->setSampleRate(kSampleRate)
+      ->setChannelCount(kChannelCount)
+      ->setFormat(oboe::AudioFormat::Float)
+      ->setFramesPerDataCallback(kFramesPerBuffer);
+
+  auto inputResult = inputBuilder.openStream(mInputStream);
+  if (inputResult != oboe::Result::OK) {
+    LOGE("Failed to open input stream: %s", oboe::convertToText(inputResult));
+  }
+
+  // Crear stream de salida
+  oboe::AudioStreamBuilder outputBuilder;
+  outputBuilder.setDirection(oboe::Direction::Output)
+      ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
+      ->setSharingMode(oboe::SharingMode::Exclusive)
+      ->setSampleRate(kSampleRate)
+      ->setChannelCount(kChannelCount)
+      ->setFormat(oboe::AudioFormat::Float)
+      ->setFramesPerDataCallback(kFramesPerBuffer)
+      ->setDataCallback(this);
+
+  auto outputResult = outputBuilder.openStream(mOutputStream);
+  if (outputResult != oboe::Result::OK) {
+    LOGE("Failed to open output stream: %s", oboe::convertToText(outputResult));
+  }
+}
+
+void VocoderEngine::closeStreams() {
+  if (mInputStream) {
+    mInputStream->stop();
+    mInputStream->close();
+    mInputStream.reset();
+  }
+  if (mOutputStream) {
+    mOutputStream->stop();
+    mOutputStream->close();
+    mOutputStream.reset();
+  }
+}
+
+oboe::DataCallbackResult VocoderEngine::onAudioReady(oboe::AudioStream *stream,
+                                                     void *audioData,
+                                                     int32_t numFrames) {
+
+  auto *outputData = static_cast<float *>(audioData);
+
+  // Asegurar que el buffer de entrada tenga tamaño suficiente (evitar overflow)
+  if (mInputBuffer.size() < static_cast<size_t>(numFrames)) {
+    mInputBuffer.resize(numFrames, 0.0f);
+  }
+
+  // Leer entrada del micrófono
+  bool gotInput = false;
+  auto inputState =
+      mInputStream ? mInputStream->getState() : oboe::StreamState::Unknown;
+
+  if (mInputStream && (inputState == oboe::StreamState::Started ||
+                       inputState == oboe::StreamState::Starting)) {
+    auto result = mInputStream->read(mInputBuffer.data(), numFrames, 0);
+    if (result.value() > 0) {
+      gotInput = true;
+      // Calcular VU level y diagnóstico
+      float sum = 0.0f;
+      float maxVal = 0.0f;
+      for (int i = 0; i < numFrames; i++) {
+        float absVal = std::abs(mInputBuffer[i]);
+        sum += absVal;
+        if (absVal > maxVal)
+          maxVal = absVal;
+      }
+      mVULevel = sum / (float)numFrames;
+
+      // Log periódico
+      static int logCounter = 0;
+      if (++logCounter >= 200) {
+        LOGI("Audio I/O Loop: dev_mic_avg=%.4f, dev_mic_max=%.4f, frames=%d",
+             (float)mVULevel, maxVal, numFrames);
+        logCounter = 0;
+      }
+    }
+  }
+
+  if (!gotInput) {
+    std::fill(mInputBuffer.begin(), mInputBuffer.begin() + numFrames, 0.0f);
+  }
+
+  // Procesar vocoder
+  mProcessor->process(mInputBuffer.data(), outputData, numFrames);
+
+  // Copiar datos para visualización (primeros 256)
+  int displaySamples = std::min(numFrames, 256);
+  std::copy(outputData, outputData + displaySamples, mWaveformBuffer.begin());
+
+  return oboe::DataCallbackResult::Continue;
+}
+
+// Setters
+void VocoderEngine::setPitch(float pitch) { mProcessor->setPitch(pitch); }
+
+void VocoderEngine::setIntensity(float intensity) {
+  mProcessor->setIntensity(intensity);
+}
+
+void VocoderEngine::setWaveform(int type) { mProcessor->setWaveform(type); }
+
+void VocoderEngine::setVibrato(float amount) { mProcessor->setVibrato(amount); }
+
+void VocoderEngine::setEcho(float amount) { mProcessor->setEcho(amount); }
+
+void VocoderEngine::setNoiseThreshold(float threshold) {
+  mProcessor->setNoiseThreshold(threshold);
+}
+
+// Getters
+float VocoderEngine::getVULevel() const { return mVULevel.load(); }
+
+std::vector<float> VocoderEngine::getWaveformData() const {
+  return mWaveformBuffer;
+}
