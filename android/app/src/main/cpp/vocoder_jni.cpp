@@ -83,6 +83,15 @@ Java_com_antigravity_vocodergal_audio_VocoderBridge_setEcho(JNIEnv *env,
 }
 
 extern "C" JNIEXPORT void JNICALL
+Java_com_antigravity_vocodergal_audio_VocoderBridge_setTremolo(JNIEnv *env,
+                                                               jobject thiz,
+                                                               jfloat amount) {
+  if (engine != nullptr) {
+    engine->setTremolo(amount);
+  }
+}
+
+extern "C" JNIEXPORT void JNICALL
 Java_com_antigravity_vocodergal_audio_VocoderBridge_setNoiseThreshold(
     JNIEnv *env, jobject thiz, jfloat threshold) {
   if (engine != nullptr) {

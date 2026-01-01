@@ -8,15 +8,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.antigravity.vocodergal.ui.theme.*
@@ -31,10 +29,12 @@ fun XYPad(
 ) {
     var size by remember { mutableStateOf(IntSize.Zero) }
     var position by remember { mutableStateOf(Offset(0.5f, 0.5f)) }
+    val handleSize = 40.dp
     
     Box(
         modifier = modifier
             .aspectRatio(1f)
+            .padding(8.dp)
             .clip(RoundedCornerShape(8.dp))
             .border(3.dp, BronzeGold, RoundedCornerShape(8.dp))
             .background(
@@ -72,11 +72,13 @@ fun XYPad(
         // Handle (círculo que se mueve)
         Box(
             modifier = Modifier
-                .offset(
-                    x = (position.x * size.width - 20).dp / 3,
-                    y = (position.y * size.height - 20).dp / 3
-                )
-                .size(40.dp)
+                .offset {
+                    IntOffset(
+                        (position.x * size.width - 20.dp.toPx()).toInt(),
+                        (position.y * size.height - 20.dp.toPx()).toInt()
+                    )
+                }
+                .size(handleSize)
                 .clip(CircleShape)
                 .background(
                     Brush.radialGradient(

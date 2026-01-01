@@ -19,6 +19,7 @@ class VocoderBridge {
     external fun setWaveform(type: Int)
     external fun setVibrato(amount: Float)
     external fun setEcho(amount: Float)
+    external fun setTremolo(amount: Float)
     external fun setNoiseThreshold(threshold: Float)
     
     // Gestión de fuente y datos

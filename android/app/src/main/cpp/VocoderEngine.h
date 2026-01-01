@@ -31,6 +31,7 @@ public:
   void setWaveform(int type);
   void setVibrato(float amount);
   void setEcho(float amount);
+  void setTremolo(float amount);
   void setNoiseThreshold(float threshold);
 
   // Soporte de archivo / Modulador Interno

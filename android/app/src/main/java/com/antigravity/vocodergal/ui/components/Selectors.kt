@@ -82,25 +82,39 @@ fun ParamSelector(
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier) {
+    val currentIndex = options.indexOf(selected)
+    
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Text(
             text = label,
             color = BronzeGold,
-            fontSize = 12.sp
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium
         )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        Spacer(modifier = Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .width(100.dp) // Ancho fijo para estabilizar el layout
+                .clip(RoundedCornerShape(4.dp))
+                .background(Brush.verticalGradient(listOf(DarkWood, SteamGray.copy(alpha = 0.5f))))
+                .border(1.dp, BronzeGold.copy(alpha = 0.6f), RoundedCornerShape(4.dp))
+                .clickable {
+                    val nextIndex = (currentIndex + 1) % options.size
+                    onSelect(options[nextIndex])
+                }
+                .padding(vertical = 6.dp),
+            contentAlignment = Alignment.Center
         ) {
-            options.forEach { option ->
-                Text(
-                    text = option.uppercase(),
-                    color = if (option == selected) GlowAmber else OldPaper.copy(alpha = 0.6f),
-                    fontSize = 10.sp,
-                    modifier = Modifier
-                        .clickable { onSelect(option) }
-                        .padding(4.dp)
-                )
-            }
+            Text(
+                text = selected.uppercase(),
+                color = GlowAmber,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
+            )
         }
     }
 }

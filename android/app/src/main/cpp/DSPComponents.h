@@ -138,3 +138,30 @@ private:
   float mRelease = 0.0f;
   float mEnvelope = 0.0f;
 };
+
+/**
+ * Filtro de un polo para suavizar parámetros y evitar clics.
+ */
+class ParameterSmoother {
+public:
+  ParameterSmoother(float initialValue = 0.0f)
+      : mCurrentValue(initialValue), mTargetValue(initialValue) {}
+
+  void setTimeConstant(float timeConstantMs, float sampleRate) {
+    mAlpha = std::exp(-1.0f / (sampleRate * timeConstantMs * 0.001f));
+  }
+
+  void setTarget(float target) { mTargetValue = target; }
+
+  float process() {
+    mCurrentValue = mAlpha * mCurrentValue + (1.0f - mAlpha) * mTargetValue;
+    return mCurrentValue;
+  }
+
+  float getCurrentValue() const { return mCurrentValue; }
+
+private:
+  float mCurrentValue;
+  float mTargetValue;
+  float mAlpha = 0.99f;
+};

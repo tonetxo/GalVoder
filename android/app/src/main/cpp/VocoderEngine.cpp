@@ -227,6 +227,8 @@ void VocoderEngine::setVibrato(float amount) { mProcessor->setVibrato(amount); }
 
 void VocoderEngine::setEcho(float amount) { mProcessor->setEcho(amount); }
 
+void VocoderEngine::setTremolo(float amount) { mProcessor->setTremolo(amount); }
+
 void VocoderEngine::setNoiseThreshold(float threshold) {
   mProcessor->setNoiseThreshold(threshold);
 }

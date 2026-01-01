@@ -220,19 +220,20 @@ fun VocoderScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Selectores
+        val allParams = listOf("pitch", "intensity", "vibrato", "echo", "tremolo")
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             ParamSelector(
                 label = "X",
-                options = listOf("pitch", "vibrato", "echo"),
+                options = allParams,
                 selected = selectedX,
                 onSelect = { viewModel.setXParam(it) }
             )
             ParamSelector(
                 label = "Y",
-                options = listOf("intensity", "tremolo"),
+                options = allParams,
                 selected = selectedY,
                 onSelect = { viewModel.setYParam(it) }
             )

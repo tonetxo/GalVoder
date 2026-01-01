@@ -81,6 +81,9 @@ class VocoderViewModel : ViewModel() {
     private var audioRecord: android.media.AudioRecord? = null
     private var recordingJob: kotlinx.coroutines.Job? = null
 
+    private val _tremolo = MutableStateFlow(0f)
+    val tremolo: StateFlow<Float> = _tremolo.asStateFlow()
+
     init {
         Log.d(TAG, "ViewModel init - creating bridge")
         bridge.create()
@@ -319,6 +322,10 @@ class VocoderViewModel : ViewModel() {
                 val e = value * 0.7f
                 _echo.value = e
                 bridge.setEcho(e)
+            }
+            "tremolo" -> {
+                _tremolo.value = value
+                bridge.setTremolo(value)
             }
         }
     }

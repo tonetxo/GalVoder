@@ -22,21 +22,28 @@ public:
   void setWaveform(int type);
   void setVibrato(float amount);
   void setEcho(float amount);
+  void setTremolo(float amount);
   void setNoiseThreshold(float threshold);
 
 private:
   float mSampleRate;
-  float mIntensity = 0.6f;
-  float mNoiseThreshold = 0.05f;
-  float mEchoAmount = 0.0f;
-  float mVibratoAmount = 0.0f;
+
+  // Suavizadores de parámetros para evitar clics
+  ParameterSmoother sIntensity;
+  ParameterSmoother sNoiseThreshold;
+  ParameterSmoother sEchoAmount;
+  ParameterSmoother sVibratoAmount;
+  ParameterSmoother sTremoloAmount;
+  ParameterSmoother sBasePitch;
 
   // Oscilador carrier
   Oscillator mCarrier;
 
   // LFO para vibrato
   Oscillator mVibratoLFO;
-  float mBasePitch = 140.0f;
+
+  // LFO para tremolo
+  Oscillator mTremoloLFO;
 
   // Bandas del vocoder
   struct Band {
