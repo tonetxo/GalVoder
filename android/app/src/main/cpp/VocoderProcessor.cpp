@@ -20,7 +20,7 @@ VocoderProcessor::VocoderProcessor(float sampleRate)
 
   // Valores iniciales
   sNoiseThreshold.setTarget(0.012f);
-  sIntensity.setTarget(1.2f);
+  sIntensity.setTarget(1.5f); // Subido de 1.2f
   sBasePitch.setTarget(140.0f);
 
   mEchoBuffer.resize(kEchoSamples, 0.0f);
@@ -33,11 +33,15 @@ VocoderProcessor::VocoderProcessor(float sampleRate)
   mTremoloLFO.setFrequency(6.0f);
   mTremoloLFO.setWaveform(Oscillator::Waveform::Sine);
 
+  // Filtro anti-acople (100Hz HPF)
+  mModHPF.setCoefficients(100.0f, 0.707f, sampleRate);
+
   initBands();
 }
 
 void VocoderProcessor::initBands() {
-  constexpr float Q = 25.0f;
+  constexpr float Q = 18.0f; // Baixado de 25 a 18 para un son máis suave e
+                             // menos propenso a asubíos
   for (int i = 0; i < kNumBands; i++) {
     mBands[i].frequency = kBandFrequencies[i];
     mBands[i].modFilter.setCoefficients(kBandFrequencies[i], Q, mSampleRate);
@@ -64,8 +68,11 @@ void VocoderProcessor::process(const float *input, float *output,
     // Generar carrier
     float carrierSample = mCarrier.process();
 
-    // Modulador: Preamplificación
-    float modSample = input[frame] * 12.0f;
+    // Modulador: Preamplificación (16x balanceado)
+    float modSample = input[frame] * 16.0f;
+
+    // Aplicar HPF para quitar retumbo de graves que causa acople
+    modSample = mModHPF.process(modSample);
 
     // Vocoding: Bandas
     float outputSample = 0.0f;
@@ -73,17 +80,17 @@ void VocoderProcessor::process(const float *input, float *output,
       float filteredMod = band.modFilter.process(modSample);
       float envelope = band.envelope.process(filteredMod);
 
-      // Puerta suave (Soft Gate) para evitar clics al entrar/salir de la banda
+      // Porta de ruído mellorada: usamos un factor de transparencia
       if (envelope > currentThreshold) {
         float filteredCar = band.carFilter.process(carrierSample);
-        // La resta (envelope - threshold) actúa como un fade-in natural
-        outputSample +=
-            filteredCar * (envelope - currentThreshold) * currentIntensity;
+        // Exponenciamos o sobre para dar máis punch sen subir o ruído de fondo
+        float boost = (envelope - currentThreshold * 0.5f);
+        outputSample += filteredCar * boost * currentIntensity;
       }
     }
 
-    // Normalización base
-    outputSample *= 0.5f;
+    // Normalización base (0.7f para volume presente sen acoplar)
+    outputSample *= 0.7f;
 
     // Aplicar tremolo (modulación de amplitud post-vocoder)
     if (currentTremolo > 0.001f) {
@@ -100,8 +107,13 @@ void VocoderProcessor::process(const float *input, float *output,
       mEchoIndex = (mEchoIndex + 1) % kEchoSamples;
     }
 
-    // Hard limiter
-    output[frame] = std::clamp(outputSample, -1.0f, 1.0f);
+    // Soft-clipper básico (tanhish) para evitar picos abruptos que realimentan
+    if (outputSample > 1.0f)
+      outputSample = 1.0f;
+    if (outputSample < -1.0f)
+      outputSample = -1.0f;
+
+    output[frame] = outputSample;
   }
 }
 
@@ -111,7 +123,7 @@ void VocoderProcessor::setPitch(float pitch) {
 
 void VocoderProcessor::setIntensity(float intensity) {
   sIntensity.setTarget(
-      std::clamp(intensity, 0.2f, 3.0f)); // Aumentado ligeramente el rango
+      std::clamp(intensity, 0.2f, 4.0f)); // Aumentado o teito de 3.0 a 4.0
 }
 
 void VocoderProcessor::setWaveform(int type) {

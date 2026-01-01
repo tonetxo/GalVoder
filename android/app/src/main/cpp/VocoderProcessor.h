@@ -45,6 +45,9 @@ private:
   // LFO para tremolo
   Oscillator mTremoloLFO;
 
+  // Filtro pasa-altos para el modulador (anti-rumble/acople)
+  HighPassFilter mModHPF;
+
   // Bandas del vocoder
   struct Band {
     BandpassFilter modFilter;

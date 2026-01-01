@@ -310,7 +310,7 @@ class VocoderViewModel : ViewModel() {
                 bridge.setPitch(p)
             }
             "intensidade" -> {
-                val i = 0.2f + value * 1.8f
+                val i = 0.2f + value * 2.8f
                 _intensity.value = i
                 bridge.setIntensity(i)
             }
