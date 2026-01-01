@@ -58,11 +58,11 @@ class VocoderViewModel : ViewModel() {
     private val _echo = MutableStateFlow(0f)
     val echo: StateFlow<Float> = _echo.asStateFlow()
     
-    // Selección del pad XY
-    private val _selectedXParam = MutableStateFlow("pitch")
+    // Selección del pad XY (en galego)
+    private val _selectedXParam = MutableStateFlow("ton")
     val selectedXParam: StateFlow<String> = _selectedXParam.asStateFlow()
     
-    private val _selectedYParam = MutableStateFlow("intensity")
+    private val _selectedYParam = MutableStateFlow("intensidade")
     val selectedYParam: StateFlow<String> = _selectedYParam.asStateFlow()
     
     // Fuente
@@ -304,12 +304,12 @@ class VocoderViewModel : ViewModel() {
     
     private fun updateParam(param: String, value: Float) {
         when (param) {
-            "pitch" -> {
+            "ton" -> {
                 val p = 50f + value * 350f
                 _pitch.value = p
                 bridge.setPitch(p)
             }
-            "intensity" -> {
+            "intensidade" -> {
                 val i = 0.2f + value * 1.8f
                 _intensity.value = i
                 bridge.setIntensity(i)
@@ -318,12 +318,12 @@ class VocoderViewModel : ViewModel() {
                 _vibrato.value = value
                 bridge.setVibrato(value)
             }
-            "echo" -> {
+            "eco" -> {
                 val e = value * 0.7f
                 _echo.value = e
                 bridge.setEcho(e)
             }
-            "tremolo" -> {
+            "trémolo" -> {
                 _tremolo.value = value
                 bridge.setTremolo(value)
             }

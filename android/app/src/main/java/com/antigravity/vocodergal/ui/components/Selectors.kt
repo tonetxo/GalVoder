@@ -25,7 +25,7 @@ fun WaveformSelector(
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val waveforms = listOf("SAW", "SQR", "TRI", "SIN")
+    val waveforms = listOf("SERRA", "CUAD.", "TRIA.", "SENO")
     
     Row(
         modifier = modifier.fillMaxWidth(),

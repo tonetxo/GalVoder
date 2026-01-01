@@ -66,7 +66,7 @@ fun VocoderScreen(
     ) {
         // Título
         Text(
-            text = "VOCODER GAL",
+            text = "GALVODER",
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(bottom = 16.dp)
@@ -90,7 +90,7 @@ fun VocoderScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.PowerSettingsNew,
-                    contentDescription = "Power",
+                    contentDescription = "Enerxía",
                     tint = if (isRunning) Color.Black else MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -120,7 +120,7 @@ fun VocoderScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Mic,
-                            contentDescription = "Mic",
+                            contentDescription = "Micro",
                             tint = if (isMicSource) Color.Black else MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -140,7 +140,7 @@ fun VocoderScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.PlayArrow,
-                            contentDescription = "File",
+                            contentDescription = "Ficheiro",
                             tint = if (!isMicSource) Color.Black else MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -159,7 +159,7 @@ fun VocoderScreen(
                     ) {
                         Icon(
                             imageVector = if (isRecording) Icons.Default.RadioButtonChecked else Icons.Default.RadioButtonUnchecked,
-                            contentDescription = "Record",
+                            contentDescription = "Gravar",
                             tint = if (isRecording) Color.Red else MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -173,7 +173,7 @@ fun VocoderScreen(
                         ) {
                             Icon(
                                 imageVector = if (isFilePlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = "Play/Pause",
+                                contentDescription = "Reproducir/Pausar",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -183,7 +183,7 @@ fun VocoderScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Refresh,
-                                contentDescription = "Reset",
+                                contentDescription = "Reiniciar",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -198,7 +198,7 @@ fun VocoderScreen(
                         } else {
                             Icon(
                                 imageVector = Icons.Default.UploadFile,
-                                contentDescription = "Load File",
+                                contentDescription = "Cargar Ficheiro",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -220,7 +220,7 @@ fun VocoderScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Selectores
-        val allParams = listOf("pitch", "intensity", "vibrato", "echo", "tremolo")
+        val allParams = listOf("ton", "intensidade", "vibrato", "eco", "trémolo")
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
