@@ -75,6 +75,12 @@ class VocoderViewModel : ViewModel() {
     private val _isDecoding = MutableStateFlow(false)
     val isDecoding: StateFlow<Boolean> = _isDecoding.asStateFlow()
 
+    private val _isRecording = MutableStateFlow(false)
+    val isRecording: StateFlow<Boolean> = _isRecording.asStateFlow()
+
+    private var audioRecord: android.media.AudioRecord? = null
+    private var recordingJob: kotlinx.coroutines.Job? = null
+
     init {
         Log.d(TAG, "ViewModel init - creating bridge")
         bridge.create()
@@ -122,6 +128,43 @@ class VocoderViewModel : ViewModel() {
 
     fun resetFilePlayback() {
         bridge.resetFileIndex()
+    }
+
+    fun toggleRecording() {
+        if (_isRecording.value) {
+            stopRecording()
+        } else {
+            if (!hasPermission) return
+            startRecording()
+        }
+    }
+
+    private fun startRecording() {
+        Log.d(TAG, "Starting internal recording in C++ engine")
+        // Asegurar que el motor esté encendido para poder grabar
+        if (!_isRunning.value) {
+            if (bridge.start()) {
+                _isRunning.value = true
+            } else {
+                Log.e(TAG, "Could not start engine for recording")
+                return
+            }
+        }
+        
+        _isRecording.value = true
+        bridge.startRecording()
+    }
+
+    private fun stopRecording() {
+        Log.d(TAG, "Stopping internal recording in C++ engine")
+        _isRecording.value = false
+        bridge.stopRecording()
+        
+        // Al terminar, la grabación se carga automáticamente en el engine como "File"
+        _isMicSource.value = false
+        _isFilePlaying.value = true
+        bridge.setSource(1)
+        bridge.setFilePlaying(true)
     }
 
     fun loadAudioFile(context: Context, uri: Uri) {

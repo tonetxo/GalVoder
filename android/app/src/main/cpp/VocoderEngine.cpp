@@ -11,6 +11,7 @@ VocoderEngine::VocoderEngine() {
   mInputBuffer.resize(kFramesPerBuffer, 0.0f);
   mOutputBuffer.resize(kFramesPerBuffer, 0.0f);
   mWaveformBuffer.resize(256, 0.0f);
+  mRecordedData.reserve(kSampleRate * 10); // Reservar para 10 segundos
   LOGI("VocoderEngine created");
 }
 
@@ -110,17 +111,32 @@ oboe::DataCallbackResult VocoderEngine::onAudioReady(oboe::AudioStream *stream,
 
   bool gotInput = false;
 
-  if (mSource == 0) { // SOURCE_MIC
-    auto inputState =
-        mInputStream ? mInputStream->getState() : oboe::StreamState::Unknown;
-    if (mInputStream && (inputState == oboe::StreamState::Started ||
-                         inputState == oboe::StreamState::Starting)) {
-      auto result = mInputStream->read(mInputBuffer.data(), numFrames, 0);
-      if (result.value() > 0) {
+  // Siempre intentamos leer el micro si el stream está vivo, incluso si mSource
+  // es File, para permitir la grabación de fondo o el VU meter global.
+  auto inputState =
+      mInputStream ? mInputStream->getState() : oboe::StreamState::Unknown;
+  std::vector<float> currentMicData(numFrames, 0.0f);
+
+  if (mInputStream && (inputState == oboe::StreamState::Started ||
+                       inputState == oboe::StreamState::Starting)) {
+    auto result = mInputStream->read(currentMicData.data(), numFrames, 0);
+    if (result.value() > 0) {
+      // Si estamos grabando, guardar la señal del micro
+      if (mIsRecording) {
+        std::lock_guard<std::mutex> lock(mRecordingMutex);
+        mRecordedData.insert(mRecordedData.end(), currentMicData.begin(),
+                             currentMicData.begin() + result.value());
+      }
+
+      if (mSource == 0) { // SOURCE_MIC
+        std::copy(currentMicData.begin(), currentMicData.end(),
+                  mInputBuffer.begin());
         gotInput = true;
       }
     }
-  } else { // SOURCE_FILE
+  }
+
+  if (mSource == 1) { // SOURCE_FILE
     if (!mModulatorFileBuffer.empty() && mIsFilePlaying) {
       for (int i = 0; i < numFrames; i++) {
         mInputBuffer[i] = mModulatorFileBuffer[mFileReadIndex];
@@ -135,7 +151,7 @@ oboe::DataCallbackResult VocoderEngine::onAudioReady(oboe::AudioStream *stream,
     std::fill(mInputBuffer.begin(), mInputBuffer.begin() + numFrames, 0.0f);
   }
 
-  // Calcular VU Level sobre la señal de entrada real
+  // Calcular VU Level sobre la señal que actúa como moduladora actualmente
   float sum = 0.0f;
   for (int i = 0; i < numFrames; i++) {
     sum += std::abs(mInputBuffer[i]);
@@ -150,6 +166,37 @@ oboe::DataCallbackResult VocoderEngine::onAudioReady(oboe::AudioStream *stream,
   std::copy(outputData, outputData + displaySamples, mWaveformBuffer.begin());
 
   return oboe::DataCallbackResult::Continue;
+}
+
+void VocoderEngine::startRecording() {
+  std::lock_guard<std::mutex> lock(mRecordingMutex);
+  mRecordedData.clear();
+  mIsRecording = true;
+  LOGI("Internal recording started");
+}
+
+void VocoderEngine::stopRecording() {
+  mIsRecording = false;
+  std::lock_guard<std::mutex> lock(mRecordingMutex);
+
+  if (!mRecordedData.empty()) {
+    // Normalización automática de la grabación antes de cargarla
+    float maxAbs = 0.0f;
+    for (float v : mRecordedData) {
+      maxAbs = std::max(maxAbs, std::abs(v));
+    }
+
+    if (maxAbs > 0.0f) {
+      float factor = 0.9f / maxAbs;
+      for (float &v : mRecordedData)
+        v *= factor;
+    }
+
+    mModulatorFileBuffer = mRecordedData;
+    mFileReadIndex = 0;
+    LOGI("Internal recording stopped. Captured %d samples",
+         (int)mModulatorFileBuffer.size());
+  }
 }
 
 void VocoderEngine::setModulatorBuffer(const float *data, int32_t numSamples) {
