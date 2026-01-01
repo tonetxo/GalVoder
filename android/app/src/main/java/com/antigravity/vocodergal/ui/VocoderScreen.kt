@@ -27,7 +27,7 @@ import com.antigravity.vocodergal.ui.components.*
 import com.antigravity.vocodergal.viewmodel.VocoderViewModel
 
 /**
- * Pantalla principal del vocoder.
+ * Pantalla principal del vocoder (GalVoder).
  */
 @Composable
 fun VocoderScreen(
@@ -46,13 +46,13 @@ fun VocoderScreen(
     val isRecording by viewModel.isRecording.collectAsState()
 
     // Animación de parpadeo para el botón REC
-    val infiniteTransition = androidx.compose.animation.core.rememberInfiniteTransition(label = "blink")
+    val infiniteTransition = rememberInfiniteTransition(label = "blink")
     val recAlpha by infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = 0.3f,
-        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
-            animation = androidx.compose.animation.core.tween(500),
-            repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
+        animationSpec = infiniteRepeatable(
+            animation = tween(500),
+            repeatMode = RepeatMode.Reverse
         ),
         label = "alpha"
     )
@@ -69,7 +69,7 @@ fun VocoderScreen(
             text = "GALVODER",
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 20.dp) // Aumentado para separar do título
         )
 
         Row(
@@ -100,18 +100,21 @@ fun VocoderScreen(
                 level = vuLevel,
                 modifier = Modifier
                     .weight(1f)
-                    .height(80.dp)
-                    .padding(horizontal = 16.dp)
+                    .height(70.dp) // Reducido para compactar
+                    .padding(horizontal = 12.dp)
             )
 
             // Controles de Fuente y Archivo
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(top = 10.dp) // Axustado para nivelar perfectamente o Micro
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     // Mic Botón
                     IconButton(
                         onClick = { if (!isMicSource) viewModel.toggleSource() },
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(36.dp) // Pequeno para que non sobresalte
                             .background(
                                 if (isMicSource) MaterialTheme.colorScheme.secondary
                                 else Color.Transparent,
@@ -131,7 +134,7 @@ fun VocoderScreen(
                     IconButton(
                         onClick = { if (isMicSource) viewModel.toggleSource() },
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(36.dp)
                             .background(
                                 if (!isMicSource) MaterialTheme.colorScheme.tertiary
                                 else Color.Transparent,
@@ -207,7 +210,7 @@ fun VocoderScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(8.dp)) // Espacio reducido para baixar o Pad
 
         // XY Pad
         XYPad(
@@ -215,9 +218,10 @@ fun VocoderScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
+                .padding(horizontal = 4.dp)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp)) // Espacio reducido para achegar o Pad ás etiquetas
 
         // Selectores
         val allParams = listOf("ton", "intensidade", "vibrato", "eco", "trémolo")
@@ -252,7 +256,7 @@ fun VocoderScreen(
             waveformData = waveformData,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(100.dp)
+                .height(80.dp) // Reducido un pouco
         )
     }
 }

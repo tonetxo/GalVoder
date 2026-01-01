@@ -1,5 +1,6 @@
 package com.antigravity.vocodergal.ui.components
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,13 +12,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.antigravity.vocodergal.ui.theme.*
+import kotlin.math.sin
 
 /**
- * Selector de forma de onda.
+ * Selector de forma de onda con representacións gráficas.
  */
 @Composable
 fun WaveformSelector(
@@ -25,15 +30,13 @@ fun WaveformSelector(
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val waveforms = listOf("SERRA", "CUAD.", "TRIA.", "SENO")
-    
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        waveforms.forEachIndexed { index, name ->
+        for (index in 0..3) {
             WaveformButton(
-                name = name,
+                type = index,
                 isSelected = index == selected,
                 onClick = { onSelect(index) }
             )
@@ -43,13 +46,13 @@ fun WaveformSelector(
 
 @Composable
 private fun WaveformButton(
-    name: String,
+    type: Int,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
-            .size(60.dp)
+            .size(54.dp) // Un pouco máis pequeno para que caiba mellor
             .clip(RoundedCornerShape(8.dp))
             .background(
                 if (isSelected) {
@@ -62,12 +65,47 @@ private fun WaveformButton(
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = name,
-            color = if (isSelected) DarkWood else OldPaper,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold
-        )
+        Canvas(modifier = Modifier.size(30.dp)) {
+            val strokeWidth = 3f
+            val iconColor = if (isSelected) DarkWood else OldPaper
+            val w = size.width
+            val h = size.height
+            val path = Path()
+
+            when (type) {
+                0 -> { // SAW (Serra)
+                    path.moveTo(0f, h * 0.8f)
+                    path.lineTo(w, h * 0.2f)
+                    path.lineTo(w, h * 0.8f)
+                }
+                1 -> { // SQUARE (Cadrada)
+                    path.moveTo(0f, h * 0.8f)
+                    path.lineTo(0f, h * 0.2f)
+                    path.lineTo(w / 2f, h * 0.2f)
+                    path.lineTo(w / 2f, h * 0.8f)
+                    path.lineTo(w, h * 0.8f)
+                    path.lineTo(w, h * 0.2f)
+                }
+                2 -> { // TRIANGLE (Triangular)
+                    path.moveTo(0f, h * 0.8f)
+                    path.lineTo(w / 2f, h * 0.2f)
+                    path.lineTo(w, h * 0.8f)
+                }
+                3 -> { // SINE (Seno)
+                    for (i in 0..w.toInt()) {
+                        val x = i.toFloat()
+                        val y = h / 2f + h * 0.3f * sin(2 * Math.PI * x / w).toFloat()
+                        if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+                    }
+                }
+            }
+
+            drawPath(
+                path = path,
+                color = iconColor,
+                style = Stroke(width = strokeWidth)
+            )
+        }
     }
 }
 
@@ -97,7 +135,7 @@ fun ParamSelector(
         Spacer(modifier = Modifier.height(4.dp))
         Box(
             modifier = Modifier
-                .width(100.dp) // Ancho fijo para estabilizar el layout
+                .width(120.dp) // Ancho aumentado para Galego (INTENSIDADE)
                 .clip(RoundedCornerShape(4.dp))
                 .background(Brush.verticalGradient(listOf(DarkWood, SteamGray.copy(alpha = 0.5f))))
                 .border(1.dp, BronzeGold.copy(alpha = 0.6f), RoundedCornerShape(4.dp))
@@ -111,7 +149,7 @@ fun ParamSelector(
             Text(
                 text = selected.uppercase(),
                 color = GlowAmber,
-                fontSize = 11.sp,
+                fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
             )
