@@ -151,12 +151,24 @@ oboe::DataCallbackResult VocoderEngine::onAudioReady(oboe::AudioStream *stream,
     std::fill(mInputBuffer.begin(), mInputBuffer.begin() + numFrames, 0.0f);
   }
 
-  // Calcular VU Level sobre la señal que actúa como moduladora actualmente
-  float sum = 0.0f;
+  // Calcular VU Level (RMS con balística y escalado)
+  float sumSq = 0.0f;
   for (int i = 0; i < numFrames; i++) {
-    sum += std::abs(mInputBuffer[i]);
+    float val = mInputBuffer[i];
+    sumSq += val * val;
   }
-  mVULevel = sum / (float)numFrames;
+  float rms = std::sqrt(sumSq / (float)numFrames);
+
+  // Escalado no lineal y boost para que la voz sea más visible (similar a curva
+  // de VU real)
+  float targetVU = std::pow(rms * 1.8f, 0.6f);
+
+  // Ballistics: Ataque rápido, liberación más lenta
+  float currentVU = mVULevel.load();
+  float factor = (targetVU > currentVU) ? 0.25f : 0.08f;
+  float nextVU = currentVU + (targetVU - currentVU) * factor;
+
+  mVULevel = std::clamp(nextVU, 0.0f, 1.2f);
 
   // Procesar vocoder
   mProcessor->process(mInputBuffer.data(), outputData, numFrames);

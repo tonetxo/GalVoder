@@ -35,8 +35,8 @@ fun VUMeter(
             .border(2.dp, BronzeGold, RoundedCornerShape(8.dp))
     ) {
         val centerX = size.width / 2
-        val centerY = size.height * 1.2f
-        val radius = size.height * 0.9f
+        val centerY = size.height * 0.85f
+        val radius = size.height * 0.82f
         
         // Arco del medidor
         drawArc(
@@ -46,14 +46,14 @@ fun VUMeter(
             useCenter = false,
             topLeft = Offset(centerX - radius, centerY - radius),
             size = Size(radius * 2, radius * 2),
-            style = Stroke(width = 3f)
+            style = Stroke(width = 4f)
         )
         
         // Marcas del medidor
         for (i in 0..10) {
             val angle = Math.toRadians((180 + i * 18).toDouble())
-            val startR = radius * 0.85f
-            val endR = radius * 0.95f
+            val startR = radius * 0.9f
+            val endR = radius * 0.98f
             
             drawLine(
                 color = if (i > 7) RustyRed else BronzeGold,
@@ -65,13 +65,14 @@ fun VUMeter(
                     centerX + (endR * cos(angle)).toFloat(),
                     centerY + (endR * sin(angle)).toFloat()
                 ),
-                strokeWidth = 2f
+                strokeWidth = 3f
             )
         }
         
         // Aguja
-        val needleAngle = Math.toRadians((180 + level.coerceIn(0f, 1f) * 180).toDouble())
-        val needleLength = radius * 0.8f
+        val actualLevel = level.coerceIn(0f, 1f)
+        val needleAngle = Math.toRadians((180 + actualLevel * 180).toDouble())
+        val needleLength = radius * 0.92f
         
         drawLine(
             color = GlowAmber,
@@ -80,13 +81,18 @@ fun VUMeter(
                 centerX + (needleLength * cos(needleAngle)).toFloat(),
                 centerY + (needleLength * sin(needleAngle)).toFloat()
             ),
-            strokeWidth = 4f
+            strokeWidth = 5f
         )
         
         // Centro de la aguja
         drawCircle(
             color = DarkBronze,
-            radius = 8f,
+            radius = 12f,
+            center = Offset(centerX, centerY)
+        )
+        drawCircle(
+            color = BronzeGold,
+            radius = 4f,
             center = Offset(centerX, centerY)
         )
     }
