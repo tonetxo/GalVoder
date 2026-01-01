@@ -114,9 +114,11 @@ class EnvelopeFollower {
 public:
   EnvelopeFollower() = default;
 
-  EnvelopeFollower(float sampleRate) {
-    float attackMs = 5.0f;
-    float releaseMs = 50.0f;
+  EnvelopeFollower(float sampleRate) { setSampleRate(sampleRate); }
+
+  void setSampleRate(float sampleRate) {
+    float attackMs = 2.0f;   // Más rápido para mejor definición de consonantes
+    float releaseMs = 30.0f; // Más corto para evitar "cola" excesiva
     mAttack = std::exp(-1.0f / (sampleRate * attackMs * 0.001f));
     mRelease = std::exp(-1.0f / (sampleRate * releaseMs * 0.001f));
   }

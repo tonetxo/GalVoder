@@ -8,9 +8,9 @@
 
 VocoderEngine::VocoderEngine() {
   mProcessor = std::make_unique<VocoderProcessor>(kSampleRate);
-  mInputBuffer.resize(kFramesPerBuffer);
-  mOutputBuffer.resize(kFramesPerBuffer);
-  mWaveformBuffer.resize(256);
+  mInputBuffer.resize(kFramesPerBuffer, 0.0f);
+  mOutputBuffer.resize(kFramesPerBuffer, 0.0f);
+  mWaveformBuffer.resize(256, 0.0f);
   LOGI("VocoderEngine created");
 }
 
@@ -103,39 +103,31 @@ oboe::DataCallbackResult VocoderEngine::onAudioReady(oboe::AudioStream *stream,
 
   auto *outputData = static_cast<float *>(audioData);
 
-  // Asegurar que el buffer de entrada tenga tamaño suficiente (evitar overflow)
+  // Asegurar que el buffer de entrada tenga tamaño suficiente
   if (mInputBuffer.size() < static_cast<size_t>(numFrames)) {
     mInputBuffer.resize(numFrames, 0.0f);
   }
 
-  // Leer entrada del micrófono
   bool gotInput = false;
-  auto inputState =
-      mInputStream ? mInputStream->getState() : oboe::StreamState::Unknown;
 
-  if (mInputStream && (inputState == oboe::StreamState::Started ||
-                       inputState == oboe::StreamState::Starting)) {
-    auto result = mInputStream->read(mInputBuffer.data(), numFrames, 0);
-    if (result.value() > 0) {
-      gotInput = true;
-      // Calcular VU level y diagnóstico
-      float sum = 0.0f;
-      float maxVal = 0.0f;
+  if (mSource == 0) { // SOURCE_MIC
+    auto inputState =
+        mInputStream ? mInputStream->getState() : oboe::StreamState::Unknown;
+    if (mInputStream && (inputState == oboe::StreamState::Started ||
+                         inputState == oboe::StreamState::Starting)) {
+      auto result = mInputStream->read(mInputBuffer.data(), numFrames, 0);
+      if (result.value() > 0) {
+        gotInput = true;
+      }
+    }
+  } else { // SOURCE_FILE
+    if (!mModulatorFileBuffer.empty() && mIsFilePlaying) {
       for (int i = 0; i < numFrames; i++) {
-        float absVal = std::abs(mInputBuffer[i]);
-        sum += absVal;
-        if (absVal > maxVal)
-          maxVal = absVal;
+        mInputBuffer[i] = mModulatorFileBuffer[mFileReadIndex];
+        mFileReadIndex =
+            (mFileReadIndex + 1) % (int32_t)mModulatorFileBuffer.size();
       }
-      mVULevel = sum / (float)numFrames;
-
-      // Log periódico
-      static int logCounter = 0;
-      if (++logCounter >= 200) {
-        LOGI("Audio I/O Loop: dev_mic_avg=%.4f, dev_mic_max=%.4f, frames=%d",
-             (float)mVULevel, maxVal, numFrames);
-        logCounter = 0;
-      }
+      gotInput = true;
     }
   }
 
@@ -143,15 +135,37 @@ oboe::DataCallbackResult VocoderEngine::onAudioReady(oboe::AudioStream *stream,
     std::fill(mInputBuffer.begin(), mInputBuffer.begin() + numFrames, 0.0f);
   }
 
+  // Calcular VU Level sobre la señal de entrada real
+  float sum = 0.0f;
+  for (int i = 0; i < numFrames; i++) {
+    sum += std::abs(mInputBuffer[i]);
+  }
+  mVULevel = sum / (float)numFrames;
+
   // Procesar vocoder
   mProcessor->process(mInputBuffer.data(), outputData, numFrames);
 
-  // Copiar datos para visualización (primeros 256)
+  // Copiar datos para visualización
   int displaySamples = std::min(numFrames, 256);
   std::copy(outputData, outputData + displaySamples, mWaveformBuffer.begin());
 
   return oboe::DataCallbackResult::Continue;
 }
+
+void VocoderEngine::setModulatorBuffer(const float *data, int32_t numSamples) {
+  mModulatorFileBuffer.assign(data, data + numSamples);
+  mFileReadIndex = 0;
+  LOGI("Loaded %d samples into modulator buffer", numSamples);
+}
+
+void VocoderEngine::setSource(int source) {
+  mSource = source;
+  LOGI("Switching source to: %s", source == 0 ? "Microphone" : "File");
+}
+
+void VocoderEngine::setFilePlaying(bool playing) { mIsFilePlaying = playing; }
+
+void VocoderEngine::resetFileIndex() { mFileReadIndex = 0; }
 
 // Setters
 void VocoderEngine::setPitch(float pitch) { mProcessor->setPitch(pitch); }

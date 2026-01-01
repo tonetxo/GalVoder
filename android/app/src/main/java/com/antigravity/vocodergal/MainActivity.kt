@@ -2,9 +2,11 @@ package com.antigravity.vocodergal
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -32,24 +34,31 @@ class MainActivity : ComponentActivity() {
             viewModel.onPermissionGranted()
         }
     }
+
+    private val selectFileLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            viewModel.loadAudioFile(this, it)
+        }
+    }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        Log.d(TAG, "onCreate - checking permission")
-        
         if (hasMicrophonePermission()) {
-            Log.d(TAG, "Permission already granted")
             viewModel.onPermissionGranted()
         } else {
-            Log.d(TAG, "Requesting permission")
             requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
         
         setContent {
             VocoderGalTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    VocoderScreen(viewModel = viewModel)
+                    VocoderScreen(
+                        viewModel = viewModel,
+                        onLoadFile = { selectFileLauncher.launch("audio/*") }
+                    )
                 }
             }
         }

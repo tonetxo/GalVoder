@@ -1,64 +1,69 @@
 #pragma once
 
-#include <oboe/Oboe.h>
-#include <memory>
-#include <vector>
-#include <atomic>
+#include "DSPComponents.h"
 #include "VocoderProcessor.h"
+#include <atomic>
+#include <memory>
+#include <oboe/Oboe.h>
+#include <vector>
 
 /**
- * Motor principal del vocoder que gestiona el audio con Oboe.
- * Implementa AudioStreamDataCallback para procesamiento en tiempo real.
+ * Motor de audio principal basado en Oboe.
+ * Gestiona el ciclo de vida de los streams y el callback de procesamiento.
  */
 class VocoderEngine : public oboe::AudioStreamDataCallback {
 public:
-    VocoderEngine();
-    ~VocoderEngine();
+  VocoderEngine();
+  ~VocoderEngine();
 
-    // Control del motor
-    bool start();
-    void stop();
-    
-    // Parámetros del vocoder
-    void setPitch(float pitch);
-    void setIntensity(float intensity);
-    void setWaveform(int type);
-    void setVibrato(float amount);
-    void setEcho(float amount);
-    void setNoiseThreshold(float threshold);
-    
-    // Datos para UI
-    float getVULevel() const;
-    std::vector<float> getWaveformData() const;
-    
-    // Callback de Oboe
-    oboe::DataCallbackResult onAudioReady(
-        oboe::AudioStream* stream,
-        void* audioData,
-        int32_t numFrames) override;
+  bool start();
+  void stop();
+
+  // Implementación de oboe::AudioStreamDataCallback
+  oboe::DataCallbackResult onAudioReady(oboe::AudioStream *stream,
+                                        void *audioData,
+                                        int32_t numFrames) override;
+
+  // Parámetros
+  void setPitch(float pitch);
+  void setIntensity(float intensity);
+  void setWaveform(int type);
+  void setVibrato(float amount);
+  void setEcho(float amount);
+  void setNoiseThreshold(float threshold);
+
+  // Soporte de archivo
+  void setModulatorBuffer(const float *data, int32_t numSamples);
+  void setSource(int source); // 0 = Mic, 1 = File
+  void setFilePlaying(bool playing);
+  void resetFileIndex();
+
+  // Getters
+  float getVULevel() const;
+  std::vector<float> getWaveformData() const;
 
 private:
-    // Streams de audio
-    std::shared_ptr<oboe::AudioStream> mInputStream;
-    std::shared_ptr<oboe::AudioStream> mOutputStream;
-    
-    // Procesador del vocoder
-    std::unique_ptr<VocoderProcessor> mProcessor;
-    
-    // Estado
-    std::atomic<bool> mIsRunning{false};
-    std::atomic<float> mVULevel{0.0f};
-    
-    // Buffers
-    std::vector<float> mInputBuffer;
-    std::vector<float> mOutputBuffer;
-    std::vector<float> mWaveformBuffer;
-    
-    // Configuración
-    static constexpr int32_t kSampleRate = 48000;
-    static constexpr int32_t kChannelCount = 1;
-    static constexpr int32_t kFramesPerBuffer = 256;
-    
-    void createStreams();
-    void closeStreams();
+  void createStreams();
+  void closeStreams();
+
+  std::shared_ptr<oboe::AudioStream> mInputStream;
+  std::shared_ptr<oboe::AudioStream> mOutputStream;
+  std::unique_ptr<VocoderProcessor> mProcessor;
+
+  std::vector<float> mInputBuffer;
+  std::vector<float> mOutputBuffer;
+  std::vector<float> mWaveformBuffer;
+
+  // Buffer para archivo
+  std::vector<float> mModulatorFileBuffer;
+  int32_t mFileReadIndex = 0;
+  int mSource = 0; // 0 = Mic, 1 = File
+  bool mIsFilePlaying = true;
+
+  std::atomic<float> mVULevel{0.0f};
+  bool mIsRunning = false;
+
+  static constexpr int kSampleRate = 48000;
+  static constexpr int kChannelCount = 1;
+  static constexpr int kFramesPerBuffer = 256;
 };

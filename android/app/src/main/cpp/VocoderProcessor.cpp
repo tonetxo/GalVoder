@@ -7,8 +7,8 @@ constexpr std::array<float, VocoderProcessor::kNumBands>
 
 VocoderProcessor::VocoderProcessor(float sampleRate)
     : mSampleRate(sampleRate), mCarrier(sampleRate), mVibratoLFO(sampleRate) {
-  mNoiseThreshold = 0.002f; // Aún más bajo
-  mIntensity = 5.0f;        // Mucho más intensidad de salida
+  mNoiseThreshold = 0.012f; // Umbral equilibrado para evitar feedback
+  mIntensity = 1.2f;        // Ganancia de salida moderada
   mEchoBuffer.resize(kEchoSamples, 0.0f);
   mVibratoLFO.setFrequency(5.0f);
   mVibratoLFO.setWaveform(Oscillator::Waveform::Sine);
@@ -16,7 +16,8 @@ VocoderProcessor::VocoderProcessor(float sampleRate)
 }
 
 void VocoderProcessor::initBands() {
-  constexpr float Q = 8.0f; // Un poco más ancho para dejar pasar más energía
+  constexpr float Q =
+      25.0f; // Filtros estrechos para excelente nitidez tymbrica
 
   for (int i = 0; i < kNumBands; i++) {
     mBands[i].frequency = kBandFrequencies[i];
@@ -36,31 +37,29 @@ void VocoderProcessor::process(const float *input, float *output,
     // Generar carrier
     float carrierSample = mCarrier.process();
 
-    // Señal de entrada (modulador) - Aplicar pre-amplificación fuerte
-    float modSample = input[frame] * 20.0f;
-
-    // Calcular nivel global del modulador para noise gate
-    float modLevel = std::abs(modSample);
+    // Señal de entrada (modulador) - Pre-amplificación moderada
+    float modSample = input[frame] * 12.0f;
 
     // Procesar cada banda
     float outputSample = 0.0f;
 
-    if (modLevel > mNoiseThreshold) {
-      for (auto &band : mBands) {
-        // Filtrar modulador y extraer envolvente
-        float filteredMod = band.modFilter.process(modSample);
-        float envelope = band.envelope.process(filteredMod);
+    for (auto &band : mBands) {
+      // Filtrar modulador y extraer envolvente
+      float filteredMod = band.modFilter.process(modSample);
+      float envelope = band.envelope.process(filteredMod);
 
+      // Puerta de ruido por banda para evitar acoples internos
+      if (envelope > mNoiseThreshold) {
         // Filtrar carrier
         float filteredCar = band.carFilter.process(carrierSample);
 
-        // Aplicar envolvente al carrier
-        outputSample += filteredCar * envelope * mIntensity;
+        // Aplicar envolvente al carrier (sustrayendo el umbral para suavizar)
+        outputSample += filteredCar * (envelope - mNoiseThreshold) * mIntensity;
       }
     }
 
-    // Normalizar por número de bandas
-    outputSample /= static_cast<float>(kNumBands) * 0.5f;
+    // Normalización de salida más controlada
+    outputSample *= 0.5f;
 
     // Aplicar eco
     if (mEchoAmount > 0.001f) {
@@ -70,7 +69,7 @@ void VocoderProcessor::process(const float *input, float *output,
       mEchoIndex = (mEchoIndex + 1) % kEchoSamples;
     }
 
-    // Limitar salida
+    // Hard limiter para seguridad auditiva
     output[frame] = std::clamp(outputSample, -1.0f, 1.0f);
   }
 }
@@ -96,5 +95,5 @@ void VocoderProcessor::setEcho(float amount) {
 }
 
 void VocoderProcessor::setNoiseThreshold(float threshold) {
-  mNoiseThreshold = std::clamp(threshold, 0.01f, 0.2f);
+  mNoiseThreshold = std::clamp(threshold, 0.005f, 0.2f);
 }
