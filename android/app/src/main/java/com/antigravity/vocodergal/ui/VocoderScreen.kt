@@ -6,6 +6,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
@@ -23,7 +24,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.Stroke
 import com.antigravity.vocodergal.ui.components.*
+import com.antigravity.vocodergal.ui.theme.*
 import com.antigravity.vocodergal.viewmodel.VocoderViewModel
 
 /**
@@ -44,6 +56,7 @@ fun VocoderScreen(
     val isFilePlaying by viewModel.isFilePlaying.collectAsState()
     val isDecoding by viewModel.isDecoding.collectAsState()
     val isRecording by viewModel.isRecording.collectAsState()
+    var resetTrigger by remember { mutableStateOf(0) }
 
     // Animación de parpadeo para el botón REC
     val infiniteTransition = rememberInfiniteTransition(label = "blink")
@@ -214,6 +227,7 @@ fun VocoderScreen(
 
         // XY Pad
         XYPad(
+            resetKey = resetTrigger,
             onMove = { x, y -> viewModel.updatePad(x, y) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -221,26 +235,88 @@ fun VocoderScreen(
                 .padding(horizontal = 4.dp)
         )
 
-        Spacer(modifier = Modifier.height(8.dp)) // Espacio reducido para achegar o Pad ás etiquetas
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Selectores
+        // Estrutura de control balanceada (Etiquetas e Botóns aliñados horizontalmente)
         val allParams = listOf("ton", "intensidade", "vibrato", "eco", "trémolo")
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            ParamSelector(
-                label = "X",
-                options = allParams,
-                selected = selectedX,
-                onSelect = { viewModel.setXParam(it) }
-            )
-            ParamSelector(
-                label = "Y",
-                options = allParams,
-                selected = selectedY,
-                onSelect = { viewModel.setYParam(it) }
-            )
+        
+        Column(modifier = Modifier.fillMaxWidth()) {
+            // Fila de etiquetas sincronizada co peso dos botóns
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Text(text = "X", color = BronzeGold, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                }
+                Spacer(modifier = Modifier.width(44.dp)) // Oco para o círculo de Reset
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Text(text = "Y", color = BronzeGold, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Fila de interactores (Botóns + Reset)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    ParamButton(
+                        options = allParams,
+                        selected = selectedX,
+                        onSelect = { viewModel.setXParam(it) }
+                    )
+                }
+
+                // Botón RESET Circular (44dp)
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(Brush.verticalGradient(listOf(DarkWood, SteamGray.copy(alpha = 0.5f))))
+                        .border(1.dp, BronzeGold.copy(alpha = 0.6f), CircleShape)
+                        .clickable { 
+                            viewModel.resetParams()
+                            resetTrigger++
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Canvas(modifier = Modifier.size(20.dp)) {
+                        val color = GlowAmber
+                        val strokeWidth = 2.dp.toPx()
+                        
+                        drawCircle(
+                            color = color,
+                            radius = 4.dp.toPx(),
+                            style = Stroke(width = strokeWidth)
+                        )
+                        
+                        drawLine(
+                            color = color,
+                            start = Offset(size.width / 2, 0f),
+                            end = Offset(size.width / 2, size.height),
+                            strokeWidth = strokeWidth
+                        )
+                        drawLine(
+                            color = color,
+                            start = Offset(0f, size.height / 2),
+                            end = Offset(size.width, size.height / 2),
+                            strokeWidth = strokeWidth
+                        )
+                    }
+                }
+
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    ParamButton(
+                        options = allParams,
+                        selected = selectedY,
+                        onSelect = { viewModel.setYParam(it) }
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))

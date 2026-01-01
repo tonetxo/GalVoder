@@ -330,6 +330,22 @@ class VocoderViewModel : ViewModel() {
         }
     }
     
+    fun resetParams() {
+        // Reset de efectos secundarios a cero
+        _vibrato.value = 0f
+        _echo.value = 0f
+        _tremolo.value = 0f
+        bridge.setVibrato(0f)
+        bridge.setEcho(0f)
+        bridge.setTremolo(0f)
+
+        // Reset del Pad ao centro (0.5, 0.5)
+        // Isto sincroniza automaticamente os parámetros actuais en X e Y
+        updatePad(0.5f, 0.5f)
+        
+        Log.d(TAG, "Parámetros reiniciados e sincronizados co Pad")
+    }
+    
     fun setWaveform(type: Int) {
         _waveform.value = type
         bridge.setWaveform(type)

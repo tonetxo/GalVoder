@@ -25,10 +25,11 @@ import com.antigravity.vocodergal.ui.theme.*
 @Composable
 fun XYPad(
     modifier: Modifier = Modifier,
+    resetKey: Any = Unit,
     onMove: (x: Float, y: Float) -> Unit
 ) {
     var size by remember { mutableStateOf(IntSize.Zero) }
-    var position by remember { mutableStateOf(Offset(0.5f, 0.5f)) }
+    var position by remember(resetKey) { mutableStateOf(Offset(0.5f, 0.5f)) }
     val handleSize = 40.dp
     
     Box(
@@ -43,7 +44,7 @@ fun XYPad(
                 )
             )
             .onSizeChanged { size = it }
-            .pointerInput(Unit) {
+            .pointerInput(resetKey) {
                 detectDragGestures { change, _ ->
                     val x = (change.position.x / size.width).coerceIn(0f, 1f)
                     val y = (change.position.y / size.height).coerceIn(0f, 1f)

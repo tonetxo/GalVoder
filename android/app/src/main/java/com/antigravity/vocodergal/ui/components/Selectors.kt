@@ -109,50 +109,62 @@ private fun WaveformButton(
     }
 }
 
-/**
- * Selector de parámetro para los ejes XY.
- */
 @Composable
 fun ParamSelector(
-    label: String,
+    label: String? = null,
+    options: List<String>,
+    selected: String,
+    onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (label != null) {
+            Text(
+                text = label,
+                color = BronzeGold,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+        }
+        ParamButton(
+            options = options,
+            selected = selected,
+            onSelect = onSelect
+        )
+    }
+}
+
+@Composable
+fun ParamButton(
     options: List<String>,
     selected: String,
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val currentIndex = options.indexOf(selected)
-    
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
+    Box(
+        modifier = modifier
+            .width(120.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(Brush.verticalGradient(listOf(DarkWood, SteamGray.copy(alpha = 0.5f))))
+            .border(1.dp, BronzeGold.copy(alpha = 0.6f), RoundedCornerShape(4.dp))
+            .clickable {
+                val nextIndex = (currentIndex + 1) % options.size
+                onSelect(options[nextIndex])
+            }
+            .padding(vertical = 6.dp),
+        contentAlignment = Alignment.Center
     ) {
         Text(
-            text = label,
-            color = BronzeGold,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium
+            text = selected.uppercase(),
+            color = GlowAmber,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp
         )
-        Spacer(modifier = Modifier.height(4.dp))
-        Box(
-            modifier = Modifier
-                .width(120.dp) // Ancho aumentado para Galego (INTENSIDADE)
-                .clip(RoundedCornerShape(4.dp))
-                .background(Brush.verticalGradient(listOf(DarkWood, SteamGray.copy(alpha = 0.5f))))
-                .border(1.dp, BronzeGold.copy(alpha = 0.6f), RoundedCornerShape(4.dp))
-                .clickable {
-                    val nextIndex = (currentIndex + 1) % options.size
-                    onSelect(options[nextIndex])
-                }
-                .padding(vertical = 6.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = selected.uppercase(),
-                color = GlowAmber,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp
-            )
-        }
     }
 }
