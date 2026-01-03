@@ -20,3 +20,5 @@ Thumbs.db
 # Build outputs
 dist/
 build/
+# Local docs
+QWEN.md
