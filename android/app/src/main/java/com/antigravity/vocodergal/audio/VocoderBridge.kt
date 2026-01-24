@@ -23,6 +23,7 @@ class VocoderBridge {
     external fun setNoiseThreshold(threshold: Float)
     
     // Gestión de fuente y datos
+    external fun setMicActive(active: Boolean)
     external fun setSource(source: Int) // 0 = Mic, 1 = File
     external fun loadModulatorData(data: FloatArray)
     external fun setFilePlaying(playing: Boolean)

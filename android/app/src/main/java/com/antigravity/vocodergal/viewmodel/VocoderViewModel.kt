@@ -65,21 +65,21 @@ class VocoderViewModel : ViewModel() {
     private val _selectedYParam = MutableStateFlow("intensidade")
     val selectedYParam: StateFlow<String> = _selectedYParam.asStateFlow()
     
-    // Fuente
-    private val _isMicSource = MutableStateFlow(true)
-    val isMicSource: StateFlow<Boolean> = _isMicSource.asStateFlow()
+    // Fuente y estados de audio
+    private val _isMicActive = MutableStateFlow(false)
+    val isMicActive: StateFlow<Boolean> = _isMicActive.asStateFlow()
 
     private val _isFilePlaying = MutableStateFlow(false)
     val isFilePlaying: StateFlow<Boolean> = _isFilePlaying.asStateFlow()
+
+    private val _hasFileLoaded = MutableStateFlow(false)
+    val hasFileLoaded: StateFlow<Boolean> = _hasFileLoaded.asStateFlow()
 
     private val _isDecoding = MutableStateFlow(false)
     val isDecoding: StateFlow<Boolean> = _isDecoding.asStateFlow()
 
     private val _isRecording = MutableStateFlow(false)
     val isRecording: StateFlow<Boolean> = _isRecording.asStateFlow()
-
-    private var audioRecord: android.media.AudioRecord? = null
-    private var recordingJob: kotlinx.coroutines.Job? = null
 
     private val _tremolo = MutableStateFlow(0f)
     val tremolo: StateFlow<Float> = _tremolo.asStateFlow()
@@ -112,21 +112,40 @@ class VocoderViewModel : ViewModel() {
             bridge.stop()
             _isRunning.value = false
         } else {
-            if (_isMicSource.value && !hasPermission) return
+            // El permiso de mic se requiere siempre para el engine de audio
+            if (!hasPermission) return
             if (bridge.start()) {
                 _isRunning.value = true
             }
         }
     }
     
-    fun toggleSource() {
-        _isMicSource.value = !_isMicSource.value
-        bridge.setSource(if (_isMicSource.value) 0 else 1)
+    fun toggleMicActive() {
+        if (!hasPermission) return
+        _isMicActive.value = !_isMicActive.value
+        // Establecer source a MIC cuando activamos
+        if (_isMicActive.value) {
+            bridge.setSource(0)
+        }
+        bridge.setMicActive(_isMicActive.value)
+        // Si activamos el mic, desactivamos el file playback
+        if (_isMicActive.value && _isFilePlaying.value) {
+            _isFilePlaying.value = false
+            bridge.setFilePlaying(false)
+        }
     }
 
     fun toggleFilePlayback() {
+        if (!_hasFileLoaded.value) return
         _isFilePlaying.value = !_isFilePlaying.value
+        // Activar source FILE cuando reproducimos
+        bridge.setSource(if (_isFilePlaying.value) 1 else 0)
         bridge.setFilePlaying(_isFilePlaying.value)
+        // Si activamos playback, desactivamos el mic
+        if (_isFilePlaying.value && _isMicActive.value) {
+            _isMicActive.value = false
+            bridge.setMicActive(false)
+        }
     }
 
     fun resetFilePlayback() {
@@ -163,11 +182,11 @@ class VocoderViewModel : ViewModel() {
         _isRecording.value = false
         bridge.stopRecording()
         
-        // Al terminar, la grabación se carga automáticamente en el engine como "File"
-        _isMicSource.value = false
-        _isFilePlaying.value = true
-        bridge.setSource(1)
-        bridge.setFilePlaying(true)
+        // La grabación se carga pero NO se reproduce automáticamente
+        _hasFileLoaded.value = true
+        // Desactivar mic al terminar la grabación
+        _isMicActive.value = false
+        bridge.setMicActive(false)
     }
 
     fun loadAudioFile(context: Context, uri: Uri) {
@@ -186,10 +205,8 @@ class VocoderViewModel : ViewModel() {
                     }
                     
                     bridge.loadModulatorData(data)
-                    _isMicSource.value = false
-                    bridge.setSource(1)
-                    _isFilePlaying.value = true
-                    bridge.setFilePlaying(true)
+                    _hasFileLoaded.value = true
+                    // No reproducir automáticamente, el usuario decide con PLAY
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error decoding audio file: ${e.message}")

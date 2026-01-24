@@ -80,7 +80,7 @@ public:
     b0 = alpha;
     b1 = 0.0f;
     b2 = -alpha;
-    a0 = 1.0f + alpha;
+    float a0 = 1.0f + alpha;
     a1 = -2.0f * cosw0;
     a2 = 1.0f - alpha;
 
@@ -103,7 +103,7 @@ public:
 
 private:
   float b0 = 0, b1 = 0, b2 = 0;
-  float a0 = 1, a1 = 0, a2 = 0;
+  float a1 = 0, a2 = 0;
   float x1 = 0, x2 = 0, y1 = 0, y2 = 0;
 };
 
@@ -120,7 +120,7 @@ public:
     b0 = (1.0f + cosw0) / 2.0f;
     b1 = -(1.0f + cosw0);
     b2 = (1.0f + cosw0) / 2.0f;
-    a0 = 1.0f + alpha;
+    float a0 = 1.0f + alpha;
     a1 = -2.0f * cosw0;
     a2 = 1.0f - alpha;
 
@@ -142,7 +142,7 @@ public:
 
 private:
   float b0 = 0, b1 = 0, b2 = 0;
-  float a0 = 1, a1 = 0, a2 = 0;
+  float a1 = 0, a2 = 0;
   float x1 = 0, x2 = 0, y1 = 0, y2 = 0;
 };
 

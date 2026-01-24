@@ -100,6 +100,14 @@ Java_com_antigravity_vocodergal_audio_VocoderBridge_setNoiseThreshold(
 }
 
 extern "C" JNIEXPORT void JNICALL
+Java_com_antigravity_vocodergal_audio_VocoderBridge_setMicActive(
+    JNIEnv *env, jobject thiz, jboolean active) {
+  if (engine != nullptr) {
+    engine->setMicActive(active);
+  }
+}
+
+extern "C" JNIEXPORT void JNICALL
 Java_com_antigravity_vocodergal_audio_VocoderBridge_setSource(JNIEnv *env,
                                                               jobject thiz,
                                                               jint source) {

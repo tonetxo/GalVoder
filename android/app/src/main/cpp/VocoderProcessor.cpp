@@ -2,6 +2,15 @@
 #include <algorithm>
 #include <cmath>
 
+// Constantes de procesamiento con nombres descriptivos
+static constexpr float kModulatorPreamp =
+    16.0f; // Preamplificación del modulador
+static constexpr float kThresholdHysteresis =
+    0.5f; // Factor de histéresis del noise gate
+static constexpr float kOutputNormalization =
+    0.7f;                                       // Normalización base de salida
+static constexpr float kVibratoDepthHz = 20.0f; // Profundidad del vibrato en Hz
+
 constexpr std::array<float, VocoderProcessor::kNumBands>
     VocoderProcessor::kBandFrequencies;
 
@@ -62,14 +71,14 @@ void VocoderProcessor::process(const float *input, float *output,
     float currentThreshold = sNoiseThreshold.process();
 
     // Aplicar vibrato al pitch
-    float vibratoMod = mVibratoLFO.process() * currentVibrato * 20.0f;
+    float vibratoMod = mVibratoLFO.process() * currentVibrato * kVibratoDepthHz;
     mCarrier.setFrequency(currentPitch + vibratoMod);
 
     // Generar carrier
     float carrierSample = mCarrier.process();
 
-    // Modulador: Preamplificación (16x balanceado)
-    float modSample = input[frame] * 16.0f;
+    // Modulador: Preamplificación
+    float modSample = input[frame] * kModulatorPreamp;
 
     // Aplicar HPF para quitar retumbo de graves que causa acople
     modSample = mModHPF.process(modSample);
@@ -83,14 +92,14 @@ void VocoderProcessor::process(const float *input, float *output,
       // Porta de ruído mellorada: usamos un factor de transparencia
       if (envelope > currentThreshold) {
         float filteredCar = band.carFilter.process(carrierSample);
-        // Exponenciamos o sobre para dar máis punch sen subir o ruído de fondo
-        float boost = (envelope - currentThreshold * 0.5f);
+        // Boost de envolvente con histéresis
+        float boost = (envelope - currentThreshold * kThresholdHysteresis);
         outputSample += filteredCar * boost * currentIntensity;
       }
     }
 
-    // Normalización base (0.7f para volume presente sen acoplar)
-    outputSample *= 0.7f;
+    // Normalización base de salida
+    outputSample *= kOutputNormalization;
 
     // Aplicar tremolo (modulación de amplitud post-vocoder)
     if (currentTremolo > 0.001f) {

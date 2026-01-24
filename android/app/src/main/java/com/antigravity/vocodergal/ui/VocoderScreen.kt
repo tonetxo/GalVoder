@@ -9,14 +9,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.RadioButtonChecked
-import androidx.compose.material.icons.filled.RadioButtonUnchecked
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.UploadFile
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -52,8 +51,9 @@ fun VocoderScreen(
     val currentWaveform by viewModel.waveform.collectAsState()
     val selectedX by viewModel.selectedXParam.collectAsState()
     val selectedY by viewModel.selectedYParam.collectAsState()
-    val isMicSource by viewModel.isMicSource.collectAsState()
+    val isMicActive by viewModel.isMicActive.collectAsState()
     val isFilePlaying by viewModel.isFilePlaying.collectAsState()
+    val hasFileLoaded by viewModel.hasFileLoaded.collectAsState()
     val isDecoding by viewModel.isDecoding.collectAsState()
     val isRecording by viewModel.isRecording.collectAsState()
     var resetTrigger by remember { mutableStateOf(0) }
@@ -117,108 +117,87 @@ fun VocoderScreen(
                     .padding(horizontal = 12.dp)
             )
 
-            // Controles de Fuente y Archivo
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(top = 10.dp) // Axustado para nivelar perfectamente o Micro
+            // 4 Botones de control: MIC, REC, LOAD, PLAY
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Mic Botón
-                    IconButton(
-                        onClick = { if (!isMicSource) viewModel.toggleSource() },
-                        modifier = Modifier
-                            .size(36.dp) // Pequeno para que non sobresalte
-                            .background(
-                                if (isMicSource) MaterialTheme.colorScheme.secondary
-                                else Color.Transparent,
-                                shape = MaterialTheme.shapes.small
-                            )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Mic,
-                            contentDescription = "Micro",
-                            tint = if (isMicSource) Color.Black else MaterialTheme.colorScheme.onSurface
+                // MIC toggle
+                IconButton(
+                    onClick = { viewModel.toggleMicActive() },
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(
+                            if (isMicActive) MaterialTheme.colorScheme.primary
+                            else Color.Transparent,
+                            shape = MaterialTheme.shapes.small
                         )
-                    }
+                ) {
+                    Icon(
+                        imageVector = if (isMicActive) Icons.Default.Mic else Icons.Default.MicOff,
+                        contentDescription = "Micrófono",
+                        tint = if (isMicActive) Color.Black else MaterialTheme.colorScheme.onSurface
+                    )
+                }
 
-                    Spacer(modifier = Modifier.width(4.dp))
+                // REC toggle
+                IconButton(
+                    onClick = { viewModel.toggleRecording() },
+                    modifier = Modifier
+                        .size(36.dp)
+                        .graphicsLayer(alpha = if (isRecording) recAlpha else 1f)
+                        .background(
+                            if (isRecording) Color.Red.copy(alpha = 0.3f)
+                            else Color.Transparent,
+                            shape = MaterialTheme.shapes.small
+                        )
+                ) {
+                    Icon(
+                        imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.RadioButtonChecked,
+                        contentDescription = "Gravar",
+                        tint = if (isRecording) Color.Red else MaterialTheme.colorScheme.onSurface
+                    )
+                }
 
-                    // File Botón
-                    IconButton(
-                        onClick = { if (isMicSource) viewModel.toggleSource() },
-                        modifier = Modifier
-                            .size(36.dp)
-                            .background(
-                                if (!isMicSource) MaterialTheme.colorScheme.tertiary
-                                else Color.Transparent,
-                                shape = MaterialTheme.shapes.small
-                            )
-                    ) {
+                // LOAD file
+                IconButton(
+                    onClick = { onLoadFile() },
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    if (isDecoding) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
                         Icon(
-                            imageVector = Icons.Default.PlayArrow,
-                            contentDescription = "Ficheiro",
-                            tint = if (!isMicSource) Color.Black else MaterialTheme.colorScheme.onSurface
+                            imageVector = Icons.Default.FolderOpen,
+                            contentDescription = "Cargar",
+                            tint = if (hasFileLoaded) MaterialTheme.colorScheme.tertiary 
+                                   else MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Controles adicionales si es modo archivo
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Botón REC
-                    IconButton(
-                        onClick = { viewModel.toggleRecording() },
-                        modifier = Modifier
-                            .size(32.dp)
-                            .graphicsLayer(alpha = if (isRecording) recAlpha else 1f)
-                    ) {
-                        Icon(
-                            imageVector = if (isRecording) Icons.Default.RadioButtonChecked else Icons.Default.RadioButtonUnchecked,
-                            contentDescription = "Gravar",
-                            tint = if (isRecording) Color.Red else MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    if (!isMicSource) {
-                        IconButton(
-                            onClick = { viewModel.toggleFilePlayback() },
-                            modifier = Modifier.size(32.dp)
-                        ) {
-                            Icon(
-                                imageVector = if (isFilePlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = "Reproducir/Pausar",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        IconButton(
-                            onClick = { viewModel.resetFilePlayback() },
-                            modifier = Modifier.size(32.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Refresh,
-                                contentDescription = "Reiniciar",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-                    
-                    IconButton(
-                        onClick = { onLoadFile() },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        if (isDecoding) {
-                            CircularProgressIndicator(modifier = Modifier.size(16.dp))
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.UploadFile,
-                                contentDescription = "Cargar Ficheiro",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
+                // PLAY/STOP toggle
+                IconButton(
+                    onClick = { viewModel.toggleFilePlayback() },
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(
+                            if (isFilePlaying) MaterialTheme.colorScheme.tertiary
+                            else Color.Transparent,
+                            shape = MaterialTheme.shapes.small
+                        ),
+                    enabled = hasFileLoaded
+                ) {
+                    Icon(
+                        imageVector = if (isFilePlaying) Icons.Default.Stop else Icons.Default.PlayArrow,
+                        contentDescription = "Reproducir",
+                        tint = if (isFilePlaying) Color.Black 
+                               else if (hasFileLoaded) MaterialTheme.colorScheme.onSurface
+                               else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                    )
                 }
             }
         }

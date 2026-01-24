@@ -35,6 +35,7 @@ public:
   void setNoiseThreshold(float threshold);
 
   // Soporte de archivo / Modulador Interno
+  void setMicActive(bool active);
   void setModulatorBuffer(const float *data, int32_t numSamples);
   void setSource(int source); // 0 = Mic, 1 = File
   void setFilePlaying(bool playing);
@@ -63,9 +64,10 @@ private:
 
   // Buffer para archivo / Modulador grabado
   std::vector<float> mModulatorFileBuffer;
-  int32_t mFileReadIndex = 0;
-  int mSource = 0; // 0 = Mic, 1 = File
-  bool mIsFilePlaying = true;
+  std::atomic<int32_t> mFileReadIndex{0};
+  std::atomic<int> mSource{0}; // 0 = Mic, 1 = File
+  std::atomic<bool> mIsFilePlaying{false};
+  std::atomic<bool> mIsMicActive{false};
 
   // Estado de grabación interna
   bool mIsRecording = false;

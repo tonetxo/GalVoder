@@ -128,7 +128,7 @@ oboe::DataCallbackResult VocoderEngine::onAudioReady(oboe::AudioStream *stream,
                              currentMicData.begin() + result.value());
       }
 
-      if (mSource == 0) { // SOURCE_MIC
+      if (mSource.load() == 0 && mIsMicActive.load()) { // SOURCE_MIC y activo
         std::copy(currentMicData.begin(), currentMicData.end(),
                   mInputBuffer.begin());
         gotInput = true;
@@ -136,13 +136,14 @@ oboe::DataCallbackResult VocoderEngine::onAudioReady(oboe::AudioStream *stream,
     }
   }
 
-  if (mSource == 1) { // SOURCE_FILE
-    if (!mModulatorFileBuffer.empty() && mIsFilePlaying) {
+  if (mSource.load() == 1) { // SOURCE_FILE
+    if (!mModulatorFileBuffer.empty() && mIsFilePlaying.load()) {
+      int32_t readIdx = mFileReadIndex.load();
       for (int i = 0; i < numFrames; i++) {
-        mInputBuffer[i] = mModulatorFileBuffer[mFileReadIndex];
-        mFileReadIndex =
-            (mFileReadIndex + 1) % (int32_t)mModulatorFileBuffer.size();
+        mInputBuffer[i] = mModulatorFileBuffer[readIdx];
+        readIdx = (readIdx + 1) % (int32_t)mModulatorFileBuffer.size();
       }
+      mFileReadIndex.store(readIdx);
       gotInput = true;
     }
   }
@@ -152,9 +153,13 @@ oboe::DataCallbackResult VocoderEngine::onAudioReady(oboe::AudioStream *stream,
   }
 
   // Calcular VU Level (RMS con balística y escalado)
+  // Usar mInputBuffer si hay entrada activa, o currentMicData si estamos
+  // grabando
   float sumSq = 0.0f;
+  const float *vuSource =
+      gotInput ? mInputBuffer.data() : currentMicData.data();
   for (int i = 0; i < numFrames; i++) {
-    float val = mInputBuffer[i];
+    float val = vuSource[i];
     sumSq += val * val;
   }
   float rms = std::sqrt(sumSq / (float)numFrames);
@@ -213,18 +218,25 @@ void VocoderEngine::stopRecording() {
 
 void VocoderEngine::setModulatorBuffer(const float *data, int32_t numSamples) {
   mModulatorFileBuffer.assign(data, data + numSamples);
-  mFileReadIndex = 0;
+  mFileReadIndex.store(0);
   LOGI("Loaded %d samples into modulator buffer", numSamples);
 }
 
 void VocoderEngine::setSource(int source) {
-  mSource = source;
+  mSource.store(source);
   LOGI("Switching source to: %s", source == 0 ? "Microphone" : "File");
 }
 
-void VocoderEngine::setFilePlaying(bool playing) { mIsFilePlaying = playing; }
+void VocoderEngine::setFilePlaying(bool playing) {
+  mIsFilePlaying.store(playing);
+}
 
-void VocoderEngine::resetFileIndex() { mFileReadIndex = 0; }
+void VocoderEngine::setMicActive(bool active) {
+  mIsMicActive.store(active);
+  LOGI("Mic active: %s", active ? "true" : "false");
+}
+
+void VocoderEngine::resetFileIndex() { mFileReadIndex.store(0); }
 
 // Setters
 void VocoderEngine::setPitch(float pitch) { mProcessor->setPitch(pitch); }
