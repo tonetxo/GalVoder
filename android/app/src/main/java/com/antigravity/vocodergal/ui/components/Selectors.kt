@@ -222,13 +222,13 @@ fun ExpandableParamSelector(
     }
 }
 
+/**
+ * Alias for ExpandableParamSelector (legacy compatibility).
+ */
 @Composable
 fun ParamButton(
     options: List<String>,
     selected: String,
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier
-) {
-    // Mantemos o nome por compatibilidade pero usamos a nova versión
-    ExpandableParamSelector(options, selected, onSelect, modifier)
-}
+) = ExpandableParamSelector(options, selected, onSelect, modifier)

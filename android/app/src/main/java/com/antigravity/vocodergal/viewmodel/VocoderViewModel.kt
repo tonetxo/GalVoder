@@ -198,15 +198,7 @@ class VocoderViewModel : ViewModel() {
             try {
                 val data = decodeAudioFile(context, uri)
                 if (data != null) {
-                    // Normalizar el audio para que tenga niveles coherentes (pico a 0.9)
-                    val maxAbs = data.maxOfOrNull { Math.abs(it) } ?: 0f
-                    if (maxAbs > 0) {
-                        val factor = 0.9f / maxAbs
-                        for (i in data.indices) {
-                            data[i] *= factor
-                        }
-                    }
-                    
+                    normalizeAudio(data)
                     bridge.loadModulatorData(data)
                     _hasFileLoaded.value = true
                 }
@@ -224,13 +216,7 @@ class VocoderViewModel : ViewModel() {
             try {
                 val data = decodeAudioFile(context, uri)
                 if (data != null) {
-                    val maxAbs = data.maxOfOrNull { Math.abs(it) } ?: 0f
-                    if (maxAbs > 0) {
-                        val factor = 0.9f / maxAbs
-                        for (i in data.indices) {
-                            data[i] *= factor
-                        }
-                    }
+                    normalizeAudio(data)
                     bridge.loadCarrierData(data)
                     _hasCarrierFileLoaded.value = true
                     // Cambiar automáticamente al tipo 4 si cargamos carrier
@@ -241,6 +227,17 @@ class VocoderViewModel : ViewModel() {
             } finally {
                 _isDecoding.value = false
             }
+        }
+    }
+
+    /**
+     * Normaliza un array de audio para que el pico máximo sea 0.9.
+     */
+    private fun normalizeAudio(data: FloatArray) {
+        val maxAbs = data.maxOfOrNull { kotlin.math.abs(it) } ?: 0f
+        if (maxAbs > 0) {
+            val factor = 0.9f / maxAbs
+            for (i in data.indices) data[i] *= factor
         }
     }
 

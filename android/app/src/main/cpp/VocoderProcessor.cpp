@@ -134,7 +134,9 @@ void VocoderProcessor::setIntensity(float intensity) {
 }
 
 void VocoderProcessor::setWaveform(int type) {
-  mCarrier.setWaveform(static_cast<Oscillator::Waveform>(type));
+  if (type >= 0 && type <= 3) {
+    mCarrier.setWaveform(static_cast<Oscillator::Waveform>(type));
+  }
 }
 
 void VocoderProcessor::setVibrato(float amount) {

@@ -4,7 +4,6 @@
 #include "VocoderProcessor.h"
 #include <atomic>
 #include <memory>
-#include <mutex>
 #include <oboe/Oboe.h>
 #include <vector>
 
@@ -81,7 +80,6 @@ private:
   std::atomic<bool> mIsRecording{false};
   std::vector<float> mRecordedData;
   std::atomic<int32_t> mRecordIndex{0};
-  std::mutex mRecordingMutex;
 
   std::atomic<float> mVULevel{0.0f};
   bool mIsRunning = false;
