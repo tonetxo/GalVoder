@@ -62,6 +62,7 @@ private:
   std::vector<float> mInputBuffer;
   std::vector<float> mOutputBuffer;
   std::vector<float> mWaveformBuffer;
+  std::vector<float> mCarrierTempBuffer; // Pre-alloc
 
   // Buffer para archivo / Modulador grabado
   std::vector<float> mModulatorFileBuffer;
@@ -77,8 +78,9 @@ private:
   std::atomic<bool> mIsMicActive{false};
 
   // Estado de grabación interna
-  bool mIsRecording = false;
+  std::atomic<bool> mIsRecording{false};
   std::vector<float> mRecordedData;
+  std::atomic<int32_t> mRecordIndex{0};
   std::mutex mRecordingMutex;
 
   std::atomic<float> mVULevel{0.0f};
@@ -87,4 +89,6 @@ private:
   static constexpr int kSampleRate = 48000;
   static constexpr int kChannelCount = 1;
   static constexpr int kFramesPerBuffer = 256;
+  static constexpr int kMaxRecordSeconds = 10;
+  static constexpr int kMaxRecordSamples = kSampleRate * kMaxRecordSeconds;
 };
