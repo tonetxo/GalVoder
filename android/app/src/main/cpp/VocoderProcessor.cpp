@@ -42,8 +42,8 @@ VocoderProcessor::VocoderProcessor(float sampleRate)
   mTremoloLFO.setFrequency(6.0f);
   mTremoloLFO.setWaveform(Oscillator::Waveform::Sine);
 
-  // Filtro anti-acople (100Hz HPF)
-  mModHPF.setCoefficients(100.0f, 0.707f, sampleRate);
+  // Filtro anti-acople (250Hz HPF - subido de 100Hz para mellor anti-feedback)
+  mModHPF.setCoefficients(250.0f, 0.707f, sampleRate);
 
   initBands();
 }
@@ -109,13 +109,18 @@ void VocoderProcessor::process(const float *input, const float *extCarrier,
       outputSample *= tremoloMod;
     }
 
-    // Aplicar eco
+    // Aplicar eco con fade-out gradual do buffer para evitar artefactos
+    float delayed = mEchoBuffer[mEchoIndex];
     if (currentEcho > 0.001f) {
-      float delayed = mEchoBuffer[mEchoIndex];
+      // Eco activo: comportamento normal
       outputSample += delayed * currentEcho;
       mEchoBuffer[mEchoIndex] = outputSample;
-      mEchoIndex = (mEchoIndex + 1) % kEchoSamples;
+    } else {
+      // Eco inactivo: fade-out gradual do buffer (decay factor 0.95)
+      // Isto evita que datos antigos causen clics ao reactivar o eco
+      mEchoBuffer[mEchoIndex] = delayed * 0.95f;
     }
+    mEchoIndex = (mEchoIndex + 1) % kEchoSamples;
 
     // Soft-clipper con tanh para saturación musical (evita distorsión dura)
     outputSample = std::tanh(outputSample);

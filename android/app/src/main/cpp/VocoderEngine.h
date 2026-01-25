@@ -63,6 +63,10 @@ private:
   std::vector<float> mOutputBuffer;
   std::vector<float> mWaveformBuffer;
 
+  // Buffers de traballo pre-alocados (evitan asignacións no callback)
+  std::vector<float> mCarrierWorkBuffer;
+  std::vector<float> mMicWorkBuffer;
+
   // Buffer para archivo / Modulador grabado
   std::vector<float> mModulatorFileBuffer;
   std::atomic<int32_t> mFileReadIndex{0};

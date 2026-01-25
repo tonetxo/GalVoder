@@ -11,6 +11,9 @@ VocoderEngine::VocoderEngine() {
   mInputBuffer.resize(kFramesPerBuffer, 0.0f);
   mOutputBuffer.resize(kFramesPerBuffer, 0.0f);
   mWaveformBuffer.resize(256, 0.0f);
+  // Pre-alocar buffers de traballo para evitar asignacións no callback
+  mCarrierWorkBuffer.resize(kFramesPerBuffer, 0.0f);
+  mMicWorkBuffer.resize(kFramesPerBuffer, 0.0f);
   mRecordedData.reserve(kSampleRate * 10); // Reservar para 10 segundos
   LOGI("VocoderEngine created");
 }
@@ -58,6 +61,9 @@ void VocoderEngine::createStreams() {
   inputBuilder.setDirection(oboe::Direction::Input)
       ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
       ->setSharingMode(oboe::SharingMode::Exclusive)
+      // Activar procesamento de audio do sistema para anti-acople
+      // VoiceCommunication activa AEC, NS e AGC automaticamente
+      ->setInputPreset(oboe::InputPreset::VoiceCommunication)
       ->setSampleRate(kSampleRate)
       ->setChannelCount(kChannelCount)
       ->setFormat(oboe::AudioFormat::Float)
@@ -104,11 +110,17 @@ oboe::DataCallbackResult VocoderEngine::onAudioReady(oboe::AudioStream *stream,
 
   auto *outputData = static_cast<float *>(audioData);
 
-  // Asegurar que el buffer de entrada tenga tamaño suficiente
+  // Asegurar que os buffers teñan tamaño suficiente (só cambia en inicio)
   if (mInputBuffer.size() < static_cast<size_t>(numFrames)) {
     mInputBuffer.resize(numFrames, 0.0f);
+    mCarrierWorkBuffer.resize(numFrames, 0.0f);
+    mMicWorkBuffer.resize(numFrames, 0.0f);
   }
-  std::vector<float> currentCarrierBuffer(numFrames, 0.0f);
+
+  // Usar buffers pre-alocados en lugar de crear novos vectores
+  std::fill(mCarrierWorkBuffer.begin(), mCarrierWorkBuffer.begin() + numFrames,
+            0.0f);
+  std::fill(mMicWorkBuffer.begin(), mMicWorkBuffer.begin() + numFrames, 0.0f);
   bool hasExtCarrier = false;
 
   bool gotInput = false;
@@ -117,21 +129,20 @@ oboe::DataCallbackResult VocoderEngine::onAudioReady(oboe::AudioStream *stream,
   // es File, para permitir la grabación de fondo o el VU meter global.
   auto inputState =
       mInputStream ? mInputStream->getState() : oboe::StreamState::Unknown;
-  std::vector<float> currentMicData(numFrames, 0.0f);
 
   if (mInputStream && (inputState == oboe::StreamState::Started ||
                        inputState == oboe::StreamState::Starting)) {
-    auto result = mInputStream->read(currentMicData.data(), numFrames, 0);
+    auto result = mInputStream->read(mMicWorkBuffer.data(), numFrames, 0);
     if (result.value() > 0) {
       // Si estamos grabando, guardar la señal del micro
       if (mIsRecording) {
         std::lock_guard<std::mutex> lock(mRecordingMutex);
-        mRecordedData.insert(mRecordedData.end(), currentMicData.begin(),
-                             currentMicData.begin() + result.value());
+        mRecordedData.insert(mRecordedData.end(), mMicWorkBuffer.begin(),
+                             mMicWorkBuffer.begin() + result.value());
       }
 
       if (mSource.load() == 0 && mIsMicActive.load()) { // SOURCE_MIC y activo
-        std::copy(currentMicData.begin(), currentMicData.end(),
+        std::copy(mMicWorkBuffer.begin(), mMicWorkBuffer.end(),
                   mInputBuffer.begin());
         gotInput = true;
       }
@@ -154,7 +165,7 @@ oboe::DataCallbackResult VocoderEngine::onAudioReady(oboe::AudioStream *stream,
   if (mWaveformType.load() == 4 && !mCarrierFileBuffer.empty()) {
     int32_t readIdx = mCarrierReadIndex.load();
     for (int i = 0; i < numFrames; i++) {
-      currentCarrierBuffer[i] = mCarrierFileBuffer[readIdx];
+      mCarrierWorkBuffer[i] = mCarrierFileBuffer[readIdx];
       readIdx = (readIdx + 1) % (int32_t)mCarrierFileBuffer.size();
     }
     mCarrierReadIndex.store(readIdx);
@@ -170,7 +181,7 @@ oboe::DataCallbackResult VocoderEngine::onAudioReady(oboe::AudioStream *stream,
   // grabando
   float sumSq = 0.0f;
   const float *vuSource =
-      gotInput ? mInputBuffer.data() : currentMicData.data();
+      gotInput ? mInputBuffer.data() : mMicWorkBuffer.data();
   for (int i = 0; i < numFrames; i++) {
     float val = vuSource[i];
     sumSq += val * val;
@@ -190,7 +201,7 @@ oboe::DataCallbackResult VocoderEngine::onAudioReady(oboe::AudioStream *stream,
 
   // Procesar vocoder
   mProcessor->process(mInputBuffer.data(),
-                      hasExtCarrier ? currentCarrierBuffer.data() : nullptr,
+                      hasExtCarrier ? mCarrierWorkBuffer.data() : nullptr,
                       outputData, numFrames);
 
   // Copiar datos para visualización
