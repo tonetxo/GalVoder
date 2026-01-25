@@ -4,11 +4,11 @@
 
 // Constantes de procesamiento con nombres descriptivos
 static constexpr float kModulatorPreamp =
-    16.0f; // Preamplificación del modulador
+    12.0f; // Preamplificación del modulador
 static constexpr float kThresholdHysteresis =
     0.5f; // Factor de histéresis del noise gate
 static constexpr float kOutputNormalization =
-    0.7f;                                       // Normalización base de salida
+    0.55f;                                      // Normalización base de salida
 static constexpr float kVibratoDepthHz = 20.0f; // Profundidad del vibrato en Hz
 
 constexpr std::array<float, VocoderProcessor::kNumBands>
@@ -29,7 +29,7 @@ VocoderProcessor::VocoderProcessor(float sampleRate)
 
   // Valores iniciales
   sNoiseThreshold.setTarget(0.012f);
-  sIntensity.setTarget(1.5f); // Subido de 1.2f
+  sIntensity.setTarget(0.8f); // Reducido para evitar saturación con mic
   sBasePitch.setTarget(140.0f);
 
   mEchoBuffer.resize(kEchoSamples, 0.0f);
@@ -116,11 +116,8 @@ void VocoderProcessor::process(const float *input, float *output,
       mEchoIndex = (mEchoIndex + 1) % kEchoSamples;
     }
 
-    // Soft-clipper básico (tanhish) para evitar picos abruptos que realimentan
-    if (outputSample > 1.0f)
-      outputSample = 1.0f;
-    if (outputSample < -1.0f)
-      outputSample = -1.0f;
+    // Soft-clipper con tanh para saturación musical (evita distorsión dura)
+    outputSample = std::tanh(outputSample);
 
     output[frame] = outputSample;
   }
