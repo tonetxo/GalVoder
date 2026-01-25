@@ -22,3 +22,8 @@ gradle/wrapper/gradle-wrapper.jar
 # NDK
 obj/
 libs/
+
+# Signing
+keystore.properties
+*.keystore
+*.jks
