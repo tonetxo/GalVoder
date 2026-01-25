@@ -8,6 +8,8 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Mic
@@ -16,8 +18,10 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -58,6 +62,8 @@ fun VocoderScreen(
     val isDecoding by viewModel.isDecoding.collectAsState()
     val isRecording by viewModel.isRecording.collectAsState()
     var resetTrigger by remember { mutableStateOf(0) }
+    var showInfoDialog by remember { mutableStateOf(false) }
+    val uriHandler = LocalUriHandler.current
 
     // Animación de parpadeo para el botón REC
     val infiniteTransition = rememberInfiniteTransition(label = "blink")
@@ -78,13 +84,28 @@ fun VocoderScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Título
-        Text(
-            text = "GALVODER",
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(bottom = 20.dp) // Aumentado para separar do título
-        )
+        // Título con botón de información
+        Row(
+            modifier = Modifier.padding(bottom = 20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "GALVODER",
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            IconButton(
+                onClick = { showInfoDialog = true },
+                modifier = Modifier.padding(start = 8.dp).size(24.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.HelpOutline,
+                    contentDescription = "Información",
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -320,5 +341,74 @@ fun VocoderScreen(
                 .fillMaxWidth()
                 .height(80.dp) // Reducido un pouco
         )
+
+        // Diálogo de Información
+        if (showInfoDialog) {
+            AlertDialog(
+                onDismissRequest = { showInfoDialog = false },
+                title = {
+                    Text(
+                        text = "GalVoder",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        // Parte scrollable: Descricións
+                        Column(
+                            modifier = Modifier
+                                .weight(1f, fill = false)
+                                .verticalScroll(rememberScrollState()),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(
+                                text = "Este inxenio electro-acústico permite canalizar a voz a través do éter dixital en tempo real. Para unha experiencia óptima en directo e evitar acoplamentos, recoméndase o uso dun micrófono externo, aínda que para gravar funciona perfectamente co do propio móbil. Podes usar a túa voz en directo, gravar fragmentos ou cargar arquivos de son. Como portadora, ademais das formas de onda clásicas, pódense empregar cilindros de son (arquivos) para obter texturas únicas.",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = "O pad X/Y ofrece múltiples posibilidades de modulación dependendo dos parámetros seleccionados (ton, intensidade, vibrato, eco ou trémolo), permitindo esculpir o son de xeito dinámico e orgánico.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
+                            )
+                        }
+
+                        // Parte fixa: Créditos
+                        Divider(modifier = Modifier.padding(vertical = 8.dp), color = BronzeGold.copy(alpha = 0.3f))
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "© TOÑO PITA 2026",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = BronzeGold,
+                                modifier = Modifier.clickable { 
+                                    uriHandler.openUri("https://modugal.pages.dev")
+                                }
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "tonetxo@gmail.com",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                                modifier = Modifier.clickable { 
+                                    uriHandler.openUri("mailto:tonetxo@gmail.com")
+                                }
+                            )
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showInfoDialog = false }) {
+                        Text("Entendido", color = MaterialTheme.colorScheme.primary)
+                    }
+                },
+                containerColor = MaterialTheme.colorScheme.surface,
+                textContentColor = MaterialTheme.colorScheme.onSurface,
+                shape = MaterialTheme.shapes.large
+            )
+        }
     }
 }

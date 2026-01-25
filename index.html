@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,142 +9,203 @@
     <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 
-<div class="steampunk-container">
-    <div class="rivet" style="top:8px; left:8px;"></div>
-    <div class="rivet" style="top:8px; right:8px;"></div>
-    <div class="rivet" style="bottom:8px; left:8px;"></div>
-    <div class="rivet" style="bottom:8px; right:8px;"></div>
+    <div class="steampunk-container">
+        <div class="rivet" style="top:8px; left:8px;"></div>
+        <div class="rivet" style="top:8px; right:8px;"></div>
+        <div class="rivet" style="bottom:8px; left:8px;"></div>
+        <div class="rivet" style="bottom:8px; right:8px;"></div>
 
-    <div class="flex justify-between items-end mb-4">
-        <div>
-            <h1 class="text-2xl tracking-tighter leading-none" style="color: var(--bronze)">VOCODER AETHEREUM AI</h1>
-            <span class="text-[9px] uppercase opacity-60">Neural Steam DSP MK-XII</span>
-        </div>
-        <div class="flex items-center bg-black/40 p-2 rounded border border-copper/20">
-            <div id="led-master" class="status-light mr-2"></div>
-            <span class="text-[10px] uppercase tracking-widest">Power Grid</span>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-        <!-- Entrada -->
-        <div class="md:col-span-3 space-y-4 bg-black/30 p-4 border border-copper/40 rounded">
-            <div class="vu-meter">
-                <div class="absolute inset-0 flex justify-between px-2 pt-1 text-[8px] text-black/40 font-bold">
-                    <span>-20</span><span>-10</span><span>0</span><span>LIMIT</span>
-                </div>
-                <div id="vu-needle" class="vu-needle"></div>
+        <div class="flex justify-between items-end mb-4">
+            <div class="flex items-center">
+                <h1 class="text-2xl tracking-tighter leading-none" style="color: var(--bronze)">VOCODER AETHEREUM AI
+                </h1>
+                <button id="btn-info"
+                    class="ml-2 w-5 h-5 rounded-full border border-copper/50 flex items-center justify-center text-[10px] text-copper hover:bg-copper/20 transition-colors"
+                    title="Información y Créditos">?</button>
             </div>
-
-            <div class="space-y-3">
-                <button id="btn-mic" class="button-steampunk w-full py-3 text-xs uppercase">Ignición Micro</button>
-                <div class="flex space-x-2">
-                    <button id="btn-file-toggle" class="button-steampunk flex-1 py-3 text-[10px] uppercase">Cilindro On/Off</button>
-                    <button id="btn-file-load" class="button-steampunk px-2 py-3 text-[10px] uppercase">Cargar</button>
-                </div>
-                <input type="file" id="file-input" hidden accept="audio/*">
+            <div>
+                <span class="text-[9px] uppercase opacity-60">Neural Steam DSP MK-XII</span>
             </div>
-
-            <div class="pt-2">
-                <label class="knob-label">Forma de Onda</label>
-                <select id="wave-type" class="parameter-select w-full mt-1">
-                    <option value="sawtooth">Saw (Cálido)</option>
-                    <option value="square">Square (Robot)</option>
-                    <option value="triangle">Triangle (Puro)</option>
-                </select>
+            <div class="flex items-center bg-black/40 p-2 rounded border border-copper/20">
+                <div id="led-master" class="status-light mr-2"></div>
+                <span class="text-[10px] uppercase tracking-widest">Power Grid</span>
             </div>
         </div>
 
-        <!-- Matriz -->
-        <div class="md:col-span-6 space-y-3">
-            <div class="flex justify-between items-center px-2 bg-black/20 py-1 border-x border-copper/20">
-                <div class="flex items-center space-x-2">
-                    <span class="knob-label">X:</span>
-                    <select id="select-x" class="parameter-select">
-                        <option value="pitch">Frecuencia</option>
-                        <option value="intensity">Sensibilidad</option>
-                        <option value="vibrato">Vibrato</option>
-                        <option value="tremolo">Trémolo</option>
-                        <option value="echo">Feedback Eco</option>
-                    </select>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <!-- Entrada -->
+            <div class="md:col-span-3 space-y-4 bg-black/30 p-4 border border-copper/40 rounded">
+                <div class="vu-meter">
+                    <div class="absolute inset-0 flex justify-between px-2 pt-1 text-[8px] text-black/40 font-bold">
+                        <span>-20</span><span>-10</span><span>0</span><span>LIMIT</span>
+                    </div>
+                    <div id="vu-needle" class="vu-needle"></div>
                 </div>
-                <div class="flex items-center space-x-2">
-                    <span class="knob-label">Y:</span>
-                    <select id="select-y" class="parameter-select">
-                        <option value="intensity" selected>Sensibilidad</option>
-                        <option value="pitch">Frecuencia</option>
-                        <option value="vibrato">Vibrato</option>
-                        <option value="tremolo">Trémolo</option>
-                        <option value="echo">Feedback Eco</option>
+
+                <div class="space-y-3">
+                    <button id="btn-mic" class="button-steampunk w-full py-3 text-xs uppercase">Ignición Micro</button>
+                    <div class="flex space-x-2">
+                        <button id="btn-file-toggle" class="button-steampunk flex-1 py-3 text-[10px] uppercase">Cilindro
+                            On/Off</button>
+                        <button id="btn-file-load"
+                            class="button-steampunk px-2 py-3 text-[10px] uppercase">Cargar</button>
+                    </div>
+                    <input type="file" id="file-input" hidden accept="audio/*">
+                </div>
+
+                <div class="pt-2">
+                    <label class="knob-label">Forma de Onda</label>
+                    <select id="wave-type" class="parameter-select w-full mt-1">
+                        <option value="sawtooth">Saw (Cálido)</option>
+                        <option value="square">Square (Robot)</option>
+                        <option value="triangle">Triangle (Puro)</option>
                     </select>
                 </div>
             </div>
 
-            <div id="pad" class="xy-pad">
-                <div id="pad-handle" class="xy-handle" style="left: 50%; top: 50%;"></div>
-                <canvas id="pad-canvas" class="absolute inset-0 w-full h-full opacity-10 pointer-events-none"></canvas>
+            <!-- Matriz -->
+            <div class="md:col-span-6 space-y-3">
+                <div class="flex justify-between items-center px-2 bg-black/20 py-1 border-x border-copper/20">
+                    <div class="flex items-center space-x-2">
+                        <span class="knob-label">X:</span>
+                        <select id="select-x" class="parameter-select">
+                            <option value="pitch">Frecuencia</option>
+                            <option value="intensity">Sensibilidad</option>
+                            <option value="vibrato">Vibrato</option>
+                            <option value="tremolo">Trémolo</option>
+                            <option value="echo">Feedback Eco</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="knob-label">Y:</span>
+                        <select id="select-y" class="parameter-select">
+                            <option value="intensity" selected>Sensibilidad</option>
+                            <option value="pitch">Frecuencia</option>
+                            <option value="vibrato">Vibrato</option>
+                            <option value="tremolo">Trémolo</option>
+                            <option value="echo">Feedback Eco</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="pad" class="xy-pad">
+                    <div id="pad-handle" class="xy-handle" style="left: 50%; top: 50%;"></div>
+                    <canvas id="pad-canvas"
+                        class="absolute inset-0 w-full h-full opacity-10 pointer-events-none"></canvas>
+                </div>
+            </div>
+
+            <!-- Monitor -->
+            <div class="md:col-span-3 space-y-4 bg-black/30 p-4 border border-copper/40 rounded">
+                <p class="text-[9px] text-center uppercase tracking-widest text-copper/80">Monitor de Éter</p>
+                <canvas id="oscilloscope" class="w-full h-20 bg-black/60 border border-rust/50"></canvas>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-black/60 p-2 border border-copper/20 text-center">
+                        <div id="val-x" class="text-sm font-bold text-white">50%</div>
+                        <div class="text-[7px] uppercase text-copper/60">X-Pos</div>
+                    </div>
+                    <div class="bg-black/60 p-2 border border-copper/20 text-center">
+                        <div id="val-y" class="text-sm font-bold text-white">50%</div>
+                        <div class="text-[7px] uppercase text-copper/60">Y-Pos</div>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button id="btn-power" class="button-steampunk w-full py-6 text-xs uppercase tracking-widest">
+                        Energizar Sistema
+                    </button>
+                </div>
+
+                <p id="msg-box"
+                    class="text-[9px] text-center uppercase min-h-[48px] text-copper/70 flex items-center justify-center px-2 bg-black/20 rounded border border-copper/10">
+                </p>
             </div>
         </div>
 
-        <!-- Monitor -->
-        <div class="md:col-span-3 space-y-4 bg-black/30 p-4 border border-copper/40 rounded">
-            <p class="text-[9px] text-center uppercase tracking-widest text-copper/80">Monitor de Éter</p>
-            <canvas id="oscilloscope" class="w-full h-20 bg-black/60 border border-rust/50"></canvas>
-
-            <div class="grid grid-cols-2 gap-2">
-                <div class="bg-black/60 p-2 border border-copper/20 text-center">
-                    <div id="val-x" class="text-sm font-bold text-white">50%</div>
-                    <div class="text-[7px] uppercase text-copper/60">X-Pos</div>
+        <!-- AI -->
+        <div class="ai-panel">
+            <h2 class="text-sm tracking-widest mb-3 uppercase flex justify-between items-center"
+                style="color: var(--ai-glow)">
+                Consola del Oráculo AI ✨
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-3">
+                    <p class="text-[10px] uppercase text-white/60">Canalización</p>
+                    <div id="ai-output" class="italic">Invoque el conocimiento del éter digital...</div>
+                    <button id="btn-ai-message" class="button-steampunk button-ai w-full py-2 text-[10px] uppercase">
+                        Generar Frase Mística ✨
+                    </button>
                 </div>
-                <div class="bg-black/60 p-2 border border-copper/20 text-center">
-                    <div id="val-y" class="text-sm font-bold text-white">50%</div>
-                    <div class="text-[7px] uppercase text-copper/60">Y-Pos</div>
+                <div class="space-y-3">
+                    <p class="text-[10px] uppercase text-white/60">Sintonía por Vibe</p>
+                    <input type="text" id="ai-vibe-input" placeholder="Ej: 'Máquina oxidada'..."
+                        class="w-full bg-black/50 border border-ai-glow/30 p-2 text-xs text-ai-glow outline-none">
+                    <button id="btn-ai-vibe" class="button-steampunk button-ai w-full py-2 text-[10px] uppercase">
+                        Calibrar mediante IA ✨
+                    </button>
                 </div>
             </div>
-
-            <div class="pt-2">
-                <button id="btn-power" class="button-steampunk w-full py-6 text-xs uppercase tracking-widest">
-                    Energizar Sistema
-                </button>
-            </div>
-
-            <p id="msg-box" class="text-[9px] text-center uppercase min-h-[48px] text-copper/70 flex items-center justify-center px-2 bg-black/20 rounded border border-copper/10"></p>
+            <div id="ai-status" class="mt-2 text-[9px] italic hidden">Estableciendo enlace neural...</div>
         </div>
     </div>
 
-    <!-- AI -->
-    <div class="ai-panel">
-        <h2 class="text-sm tracking-widest mb-3 uppercase flex justify-between items-center" style="color: var(--ai-glow)">
-            Consola del Oráculo AI ✨
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="space-y-3">
-                <p class="text-[10px] uppercase text-white/60">Canalización</p>
-                <div id="ai-output" class="italic">Invoque el conocimiento del éter digital...</div>
-                <button id="btn-ai-message" class="button-steampunk button-ai w-full py-2 text-[10px] uppercase">
-                    Generar Frase Mística ✨
-                </button>
+    <!-- Modal de Información -->
+    <div id="info-modal"
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="steampunk-container max-w-lg w-full scale-90 md:scale-100 shadow-[0_0_100px_rgba(0,0,0,1)]">
+            <div class="rivet" style="top:8px; left:8px;"></div>
+            <div class="rivet" style="top:8px; right:8px;"></div>
+            <div class="rivet" style="bottom:8px; left:8px;"></div>
+            <div class="rivet" style="bottom:8px; right:8px;"></div>
+
+            <div class="text-center mb-6">
+                <h3 class="text-xl tracking-widest uppercase mb-1" style="color: var(--bronze)">Vocoder Aethereum</h3>
+                <p class="text-[10px] uppercase opacity-60 italic">Manual de Operaciones MK-XII</p>
             </div>
-            <div class="space-y-3">
-                <p class="text-[10px] uppercase text-white/60">Sintonía por Vibe</p>
-                <input type="text" id="ai-vibe-input" placeholder="Ej: 'Máquina oxidada'..."
-                       class="w-full bg-black/50 border border-ai-glow/30 p-2 text-xs text-ai-glow outline-none">
-                <button id="btn-ai-vibe" class="button-steampunk button-ai w-full py-2 text-[10px] uppercase">
-                    Calibrar mediante IA ✨
-                </button>
+
+            <div class="space-y-4 text-xs leading-relaxed text-brass/80 text-justify">
+                <p>
+                    Este ingenio electro-acústico emplea algoritmos de síntesis neuronal para canalizar la voz a través
+                    del éter digital. Mediante la modulación de portadoras armónicas, transforma el verbo humano en
+                    resonancias mecánicas propias de una era de vapor y engranajes.
+                </p>
+                <p>
+                    La matriz de control permite ajustar la sintonía fina y la intensidad de la inducción, mientras que
+                    el Oráculo IA proporciona calibraciones automáticas basadas en las vibraciones del subsuelo binario.
+                </p>
+
+                <div class="bg-black/40 p-4 border border-copper/20 rounded-sm">
+                    <p class="font-bold text-copper mb-2 uppercase tracking-widest text-[10px]">Atributos Principales:
+                    </p>
+                    <ul class="space-y-1 list-disc list-inside opacity-90">
+                        <li><span class="text-copper">X-Pos:</span> Modula la frecuencia portadora y armónicos.</li>
+                        <li><span class="text-copper">Y-Pos:</span> Ajusta la presión del flujo y sensibilidad.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-8 pt-4 border-t border-copper/20 flex flex-col items-center">
+                <p class="text-[8px] uppercase tracking-[0.2em] text-copper/60 mb-2">Diseño y Alquimia de Código</p>
+                <p class="text-sm font-bold tracking-widest">© TOÑO PITA 2026</p>
+                <a href="mailto:tonetxo@gmail.com"
+                    class="text-[9px] text-ai-glow/70 hover:text-ai-glow transition-colors mt-1">tonetxo@gmail.com</a>
+
+                <button id="btn-close-info"
+                    class="button-steampunk px-8 py-2 mt-6 text-[10px] uppercase tracking-widest">Entendido</button>
             </div>
         </div>
-        <div id="ai-status" class="mt-2 text-[9px] italic hidden">Estableciendo enlace neural...</div>
     </div>
-</div>
 
-<script src="js/constants.js"></script>
-<script src="js/audio-engine.js"></script>
-<script src="js/ai-service.js"></script>
-<script src="js/ui-controller.js"></script>
-<script src="js/main.js"></script>
+    <script src="js/constants.js"></script>
+    <script src="js/audio-engine.js"></script>
+    <script src="js/ai-service.js"></script>
+    <script src="js/ui-controller.js"></script>
+    <script src="js/main.js"></script>
 
 </body>
+
 </html>

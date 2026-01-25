@@ -18,6 +18,9 @@ class UIController {
         this.ledPower = document.getElementById('led-master');
         this.pad = document.getElementById('pad');
         this.handle = document.getElementById('pad-handle');
+        this.infoModal = document.getElementById('info-modal');
+        this.btnInfo = document.getElementById('btn-info');
+        this.btnCloseInfo = document.getElementById('btn-close-info');
 
         this.initializeEventListeners();
     }
@@ -26,6 +29,20 @@ class UIController {
      * Sets up all event listeners for UI elements
      */
     initializeEventListeners() {
+        this.btnInfo.addEventListener('click', () => {
+            this.infoModal.classList.remove('hidden');
+        });
+
+        this.btnCloseInfo.addEventListener('click', () => {
+            this.infoModal.classList.add('hidden');
+        });
+
+        this.infoModal.addEventListener('click', (e) => {
+            if (e.target === this.infoModal) {
+                this.infoModal.classList.add('hidden');
+            }
+        });
+
         this.btnPower.addEventListener('click', async () => {
             if (!this.engine.initialized) await this.engine.create();
             if (this.engine.ctx.state === 'running') {
