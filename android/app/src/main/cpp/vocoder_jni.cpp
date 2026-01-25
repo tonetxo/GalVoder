@@ -144,6 +144,17 @@ Java_com_antigravity_vocodergal_audio_VocoderBridge_resetFileIndex(
 }
 
 extern "C" JNIEXPORT void JNICALL
+Java_com_antigravity_vocodergal_audio_VocoderBridge_loadCarrierData(
+    JNIEnv *env, jobject thiz, jfloatArray data) {
+  if (engine != nullptr && data != nullptr) {
+    jsize len = env->GetArrayLength(data);
+    jfloat *body = env->GetFloatArrayElements(data, nullptr);
+    engine->setCarrierBuffer(body, len);
+    env->ReleaseFloatArrayElements(data, body, JNI_ABORT);
+  }
+}
+
+extern "C" JNIEXPORT void JNICALL
 Java_com_antigravity_vocodergal_audio_VocoderBridge_startRecording(
     JNIEnv *env, jobject thiz) {
   if (engine != nullptr) {

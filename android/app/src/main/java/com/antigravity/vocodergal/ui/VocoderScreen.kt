@@ -43,7 +43,8 @@ import com.antigravity.vocodergal.viewmodel.VocoderViewModel
 @Composable
 fun VocoderScreen(
     viewModel: VocoderViewModel,
-    onLoadFile: () -> Unit
+    onLoadFile: () -> Unit,
+    onLoadCarrierFile: () -> Unit
 ) {
     val isRunning by viewModel.isRunning.collectAsState()
     val vuLevel by viewModel.vuLevel.collectAsState()
@@ -302,7 +303,13 @@ fun VocoderScreen(
 
         WaveformSelector(
             selected = currentWaveform,
-            onSelect = { viewModel.setWaveform(it) }
+            onSelect = { 
+                if (it == 4) {
+                    onLoadCarrierFile()
+                } else {
+                    viewModel.setWaveform(it)
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(16.dp))

@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100;400;700&display=swap');
+
+:root {
+    --emerald: #00ff8e;
+    --granite-deep: #2a2a2a;
+    --mist: rgba(220, 230, 225, 0.8);
+    --bg-dark: #0a0a0a;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: white;
+    font-family: 'Geist Mono', monospace;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+}
+
+#canvas3d {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+#ui-overlay {
+    position: relative;
+    z-index: 10;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 4rem;
+    pointer-events: none;
+}
+
+#ui-overlay * {
+    pointer-events: auto;
+}
+
+header h1 {
+    font-weight: 700;
+    font-size: 3rem;
+    letter-spacing: -0.05em;
+    color: var(--mist);
+}
+
+header .subtitle {
+    font-weight: 100;
+    font-size: 0.9rem;
+    opacity: 0.6;
+    margin-top: 0.5rem;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2rem;
+}
+
+.status-box {
+    border-left: 2px solid var(--emerald);
+    padding-left: 1rem;
+    font-size: 0.8rem;
+}
+
+.status-box .label {
+    opacity: 0.5;
+}
+
+#start-btn {
+    background: transparent;
+    border: 1px solid var(--emerald);
+    color: var(--emerald);
+    padding: 1rem 2rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
+#start-btn:hover {
+    background: var(--emerald);
+    color: var(--bg-dark);
+    box-shadow: 0 0 20px rgba(0, 255, 142, 0.4);
+}
+
+footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    opacity: 0.4;
+}
+
+.technical-info {
+    display: flex;
+    gap: 2rem;
+}
+
+/* Transitions */
+#ui-overlay {
+    transition: opacity 1s ease;
+}
+
+.hidden {
+    opacity: 0;
+    pointer-events: none !important;
+}

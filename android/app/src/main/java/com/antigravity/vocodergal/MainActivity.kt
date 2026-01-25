@@ -42,6 +42,14 @@ class MainActivity : ComponentActivity() {
             viewModel.loadAudioFile(this, it)
         }
     }
+
+    private val selectCarrierFileLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            viewModel.loadCarrierFile(this, it)
+        }
+    }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,7 +65,8 @@ class MainActivity : ComponentActivity() {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     VocoderScreen(
                         viewModel = viewModel,
-                        onLoadFile = { selectFileLauncher.launch("audio/*") }
+                        onLoadFile = { selectFileLauncher.launch("audio/*") },
+                        onLoadCarrierFile = { selectCarrierFileLauncher.launch("audio/*") }
                     )
                 }
             }

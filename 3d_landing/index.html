@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="gl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VocoGal // Brétema Reactiva</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="ui-overlay">
+        <header>
+            <h1>VOCOGAL</h1>
+            <p class="subtitle">AETHERUEM // GALICIA SOUND TECHNOLOGY</p>
+        </header>
+        
+        <main>
+            <div class="status-box">
+                <span class="label">STATUS:</span>
+                <span id="audio-status">ESPERANDO INTERACCIÓN...</span>
+            </div>
+            <button id="start-btn">INICIAR EXPERIENCIA</button>
+        </main>
+
+        <footer>
+            <div class="technical-info">
+                <span>[REF: BRTM-3D-v1]</span>
+                <span>[FPS: <span id="fps-counter">0</span>]</span>
+            </div>
+        </footer >
+    </div>
+
+    <canvas id="canvas3d"></canvas>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module" src="scene.js"></script>
+</body>
+</html>

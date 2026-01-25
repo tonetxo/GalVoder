@@ -40,6 +40,7 @@ public:
   void setSource(int source); // 0 = Mic, 1 = File
   void setFilePlaying(bool playing);
   void resetFileIndex();
+  void setCarrierBuffer(const float *data, int32_t numSamples);
 
   // Grabación Interna
   void startRecording();
@@ -65,7 +66,13 @@ private:
   // Buffer para archivo / Modulador grabado
   std::vector<float> mModulatorFileBuffer;
   std::atomic<int32_t> mFileReadIndex{0};
+
+  // Buffer para Carrier externo
+  std::vector<float> mCarrierFileBuffer;
+  std::atomic<int32_t> mCarrierReadIndex{0};
+
   std::atomic<int> mSource{0}; // 0 = Mic, 1 = File
+  std::atomic<int> mWaveformType{0};
   std::atomic<bool> mIsFilePlaying{false};
   std::atomic<bool> mIsMicActive{false};
 

@@ -59,8 +59,8 @@ void VocoderProcessor::initBands() {
   }
 }
 
-void VocoderProcessor::process(const float *input, float *output,
-                               int numFrames) {
+void VocoderProcessor::process(const float *input, const float *extCarrier,
+                               float *output, int numFrames) {
   for (int frame = 0; frame < numFrames; frame++) {
     // Obtener valores suavizados por cada frame
     float currentPitch = sBasePitch.process();
@@ -74,8 +74,9 @@ void VocoderProcessor::process(const float *input, float *output,
     float vibratoMod = mVibratoLFO.process() * currentVibrato * kVibratoDepthHz;
     mCarrier.setFrequency(currentPitch + vibratoMod);
 
-    // Generar carrier
-    float carrierSample = mCarrier.process();
+    // Generar carrier (usar externo se existe, senón usar oscilador)
+    float carrierSample =
+        (extCarrier != nullptr) ? extCarrier[frame] : mCarrier.process();
 
     // Modulador: Preamplificación
     float modSample = input[frame] * kModulatorPreamp;

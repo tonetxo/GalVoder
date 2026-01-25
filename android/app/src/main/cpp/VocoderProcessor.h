@@ -14,7 +14,8 @@ public:
 
   VocoderProcessor(float sampleRate);
 
-  void process(const float *input, float *output, int numFrames);
+  void process(const float *input, const float *extCarrier, float *output,
+               int numFrames);
 
   // Parámetros
   void setPitch(float pitch);

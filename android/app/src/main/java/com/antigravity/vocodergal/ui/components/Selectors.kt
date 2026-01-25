@@ -6,8 +6,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,9 +34,10 @@ fun WaveformSelector(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
+        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        for (index in 0..3) {
+        for (index in 0..4) {
             WaveformButton(
                 type = index,
                 isSelected = index == selected,
@@ -65,46 +68,57 @@ private fun WaveformButton(
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Canvas(modifier = Modifier.size(30.dp)) {
-            val strokeWidth = 3f
-            val iconColor = if (isSelected) DarkWood else OldPaper
-            val w = size.width
-            val h = size.height
-            val path = Path()
+        val iconColor = if (isSelected) DarkWood else OldPaper
 
-            when (type) {
-                0 -> { // SAW (Serra)
-                    path.moveTo(0f, h * 0.8f)
-                    path.lineTo(w, h * 0.2f)
-                    path.lineTo(w, h * 0.8f)
-                }
-                1 -> { // SQUARE (Cadrada)
-                    path.moveTo(0f, h * 0.8f)
-                    path.lineTo(0f, h * 0.2f)
-                    path.lineTo(w / 2f, h * 0.2f)
-                    path.lineTo(w / 2f, h * 0.8f)
-                    path.lineTo(w, h * 0.8f)
-                    path.lineTo(w, h * 0.2f)
-                }
-                2 -> { // TRIANGLE (Triangular)
-                    path.moveTo(0f, h * 0.8f)
-                    path.lineTo(w / 2f, h * 0.2f)
-                    path.lineTo(w, h * 0.8f)
-                }
-                3 -> { // SINE (Seno)
-                    for (i in 0..w.toInt()) {
-                        val x = i.toFloat()
-                        val y = h / 2f + h * 0.3f * sin(2 * Math.PI * x / w).toFloat()
-                        if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+        if (type == 4) {
+            // Icono de carpeta para carrier externo
+            Icon(
+                imageVector = Icons.Default.FolderOpen,
+                contentDescription = "Carrier Externo",
+                tint = iconColor,
+                modifier = Modifier.size(30.dp) // Match Canvas size
+            )
+        } else {
+            Canvas(modifier = Modifier.size(30.dp)) {
+                val strokeWidth = 3f
+                val w = size.width
+                val h = size.height
+                val path = Path()
+
+                when (type) {
+                    0 -> { // SAW (Serra)
+                        path.moveTo(0f, h * 0.8f)
+                        path.lineTo(w, h * 0.2f)
+                        path.lineTo(w, h * 0.8f)
+                    }
+                    1 -> { // SQUARE (Cadrada)
+                        path.moveTo(0f, h * 0.8f)
+                        path.lineTo(0f, h * 0.2f)
+                        path.lineTo(w / 2f, h * 0.2f)
+                        path.lineTo(w / 2f, h * 0.8f)
+                        path.lineTo(w, h * 0.8f)
+                        path.lineTo(w, h * 0.2f)
+                    }
+                    2 -> { // TRIANGLE (Triangular)
+                        path.moveTo(0f, h * 0.8f)
+                        path.lineTo(w / 2f, h * 0.2f)
+                        path.lineTo(w, h * 0.8f)
+                    }
+                    3 -> { // SINE (Seno)
+                        for (i in 0..w.toInt()) {
+                            val x = i.toFloat()
+                            val y = h / 2f + h * 0.3f * sin(2 * Math.PI * x / w).toFloat()
+                            if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+                        }
                     }
                 }
-            }
 
-            drawPath(
-                path = path,
-                color = iconColor,
-                style = Stroke(width = strokeWidth)
-            )
+                drawPath(
+                    path = path,
+                    color = iconColor,
+                    style = Stroke(width = strokeWidth)
+                )
+            }
         }
     }
 }
@@ -139,32 +153,82 @@ fun ParamSelector(
 }
 
 @Composable
+fun ExpandableParamSelector(
+    options: List<String>,
+    selected: String,
+    onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = modifier) {
+        // Botón principal
+        Box(
+            modifier = Modifier
+                .width(110.dp)
+                .height(48.dp) // Altura estándar de toque (48dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Brush.verticalGradient(listOf(DarkWood, SteamGray.copy(alpha = 0.5f))))
+                .border(1.dp, BronzeGold.copy(alpha = 0.6f), RoundedCornerShape(8.dp))
+                .clickable { expanded = true },
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = selected.uppercase(),
+                    color = GlowAmber,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                // Pequeño indicador de "desplegable"
+                Text(
+                    text = if (expanded) "▲" else "▼",
+                    color = BronzeGold,
+                    fontSize = 8.sp
+                )
+            }
+        }
+
+        // Menú desplegable
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .background(DarkWood)
+                .border(1.dp, BronzeGold, RoundedCornerShape(8.dp))
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = option.uppercase(),
+                            color = if (option == selected) GlowAmber else OldPaper,
+                            fontSize = 12.sp,
+                            fontWeight = if (option == selected) FontWeight.Bold else FontWeight.Normal
+                        )
+                    },
+                    onClick = {
+                        onSelect(option)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun ParamButton(
     options: List<String>,
     selected: String,
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val currentIndex = options.indexOf(selected)
-    Box(
-        modifier = modifier
-            .width(120.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(Brush.verticalGradient(listOf(DarkWood, SteamGray.copy(alpha = 0.5f))))
-            .border(1.dp, BronzeGold.copy(alpha = 0.6f), RoundedCornerShape(4.dp))
-            .clickable {
-                val nextIndex = (currentIndex + 1) % options.size
-                onSelect(options[nextIndex])
-            }
-            .padding(vertical = 6.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = selected.uppercase(),
-            color = GlowAmber,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.sp
-        )
-    }
+    // Mantemos o nome por compatibilidade pero usamos a nova versión
+    ExpandableParamSelector(options, selected, onSelect, modifier)
 }

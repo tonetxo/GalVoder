@@ -78,6 +78,9 @@ class VocoderViewModel : ViewModel() {
     private val _isDecoding = MutableStateFlow(false)
     val isDecoding: StateFlow<Boolean> = _isDecoding.asStateFlow()
 
+    private val _hasCarrierFileLoaded = MutableStateFlow(false)
+    val hasCarrierFileLoaded: StateFlow<Boolean> = _hasCarrierFileLoaded.asStateFlow()
+
     private val _isRecording = MutableStateFlow(false)
     val isRecording: StateFlow<Boolean> = _isRecording.asStateFlow()
 
@@ -206,10 +209,35 @@ class VocoderViewModel : ViewModel() {
                     
                     bridge.loadModulatorData(data)
                     _hasFileLoaded.value = true
-                    // No reproducir automáticamente, el usuario decide con PLAY
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error decoding audio file: ${e.message}")
+            } finally {
+                _isDecoding.value = false
+            }
+        }
+    }
+
+    fun loadCarrierFile(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            _isDecoding.value = true
+            try {
+                val data = decodeAudioFile(context, uri)
+                if (data != null) {
+                    val maxAbs = data.maxOfOrNull { Math.abs(it) } ?: 0f
+                    if (maxAbs > 0) {
+                        val factor = 0.9f / maxAbs
+                        for (i in data.indices) {
+                            data[i] *= factor
+                        }
+                    }
+                    bridge.loadCarrierData(data)
+                    _hasCarrierFileLoaded.value = true
+                    // Cambiar automáticamente al tipo 4 si cargamos carrier
+                    setWaveform(4)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error decoding carrier file: ${e.message}")
             } finally {
                 _isDecoding.value = false
             }

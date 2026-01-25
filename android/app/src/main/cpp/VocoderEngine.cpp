@@ -108,6 +108,8 @@ oboe::DataCallbackResult VocoderEngine::onAudioReady(oboe::AudioStream *stream,
   if (mInputBuffer.size() < static_cast<size_t>(numFrames)) {
     mInputBuffer.resize(numFrames, 0.0f);
   }
+  std::vector<float> currentCarrierBuffer(numFrames, 0.0f);
+  bool hasExtCarrier = false;
 
   bool gotInput = false;
 
@@ -148,6 +150,17 @@ oboe::DataCallbackResult VocoderEngine::onAudioReady(oboe::AudioStream *stream,
     }
   }
 
+  // Comprobar se temos carrier externo (tipo 4)
+  if (mWaveformType.load() == 4 && !mCarrierFileBuffer.empty()) {
+    int32_t readIdx = mCarrierReadIndex.load();
+    for (int i = 0; i < numFrames; i++) {
+      currentCarrierBuffer[i] = mCarrierFileBuffer[readIdx];
+      readIdx = (readIdx + 1) % (int32_t)mCarrierFileBuffer.size();
+    }
+    mCarrierReadIndex.store(readIdx);
+    hasExtCarrier = true;
+  }
+
   if (!gotInput) {
     std::fill(mInputBuffer.begin(), mInputBuffer.begin() + numFrames, 0.0f);
   }
@@ -176,7 +189,9 @@ oboe::DataCallbackResult VocoderEngine::onAudioReady(oboe::AudioStream *stream,
   mVULevel = std::clamp(nextVU, 0.0f, 1.2f);
 
   // Procesar vocoder
-  mProcessor->process(mInputBuffer.data(), outputData, numFrames);
+  mProcessor->process(mInputBuffer.data(),
+                      hasExtCarrier ? currentCarrierBuffer.data() : nullptr,
+                      outputData, numFrames);
 
   // Copiar datos para visualización
   int displaySamples = std::min(numFrames, 256);
@@ -245,7 +260,18 @@ void VocoderEngine::setIntensity(float intensity) {
   mProcessor->setIntensity(intensity);
 }
 
-void VocoderEngine::setWaveform(int type) { mProcessor->setWaveform(type); }
+void VocoderEngine::setWaveform(int type) {
+  mWaveformType.store(type);
+  if (type < 4) {
+    mProcessor->setWaveform(type);
+  }
+}
+
+void VocoderEngine::setCarrierBuffer(const float *data, int32_t numSamples) {
+  mCarrierFileBuffer.assign(data, data + numSamples);
+  mCarrierReadIndex.store(0);
+  LOGI("External carrier loaded: %d samples", numSamples);
+}
 
 void VocoderEngine::setVibrato(float amount) { mProcessor->setVibrato(amount); }
 

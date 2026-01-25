@@ -28,6 +28,7 @@ class VocoderBridge {
     external fun loadModulatorData(data: FloatArray)
     external fun setFilePlaying(playing: Boolean)
     external fun resetFileIndex()
+    external fun loadCarrierData(data: FloatArray)
     
     // Grabación Interna
     external fun startRecording()
