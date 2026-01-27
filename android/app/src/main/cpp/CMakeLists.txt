@@ -26,6 +26,12 @@ target_link_libraries(vocoder
     ${android-lib}
 )
 
+# Align native libraries to 16KB for Android 15 support
+target_link_options(vocoder PUBLIC 
+    "-Wl,-z,common-page-size=16384" 
+    "-Wl,-z,max-page-size=16384"
+)
+
 # Optimizaciones
 target_compile_options(vocoder PRIVATE
     -O3
