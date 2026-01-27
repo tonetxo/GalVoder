@@ -1,4 +1,4 @@
-package com.antigravity.vocodergal.ui.components
+package com.tonetxo.vocodergal.ui.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -17,7 +17,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.antigravity.vocodergal.ui.theme.*
+import com.tonetxo.vocodergal.ui.theme.*
 
 /**
  * XY Pad interactivo similar al de Aethereum.

@@ -1,4 +1,4 @@
-package com.antigravity.vocodergal
+package com.tonetxo.vocodergal
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -14,9 +14,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
-import com.antigravity.vocodergal.ui.VocoderScreen
-import com.antigravity.vocodergal.ui.theme.VocoderGalTheme
-import com.antigravity.vocodergal.viewmodel.VocoderViewModel
+import com.tonetxo.vocodergal.ui.VocoderScreen
+import com.tonetxo.vocodergal.ui.theme.VocoderGalTheme
+import com.tonetxo.vocodergal.viewmodel.VocoderViewModel
 
 class MainActivity : ComponentActivity() {
     

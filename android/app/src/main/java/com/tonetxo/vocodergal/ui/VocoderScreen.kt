@@ -1,4 +1,4 @@
-package com.antigravity.vocodergal.ui
+package com.tonetxo.vocodergal.ui
 
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -37,9 +37,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.antigravity.vocodergal.ui.components.*
-import com.antigravity.vocodergal.ui.theme.*
-import com.antigravity.vocodergal.viewmodel.VocoderViewModel
+import com.tonetxo.vocodergal.ui.components.*
+import com.tonetxo.vocodergal.ui.theme.*
+import com.tonetxo.vocodergal.viewmodel.VocoderViewModel
 
 /**
  * Pantalla principal del vocoder (GalVoder).

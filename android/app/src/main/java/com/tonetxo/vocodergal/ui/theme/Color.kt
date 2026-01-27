@@ -1,4 +1,4 @@
-package com.antigravity.vocodergal.ui.theme
+package com.tonetxo.vocodergal.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

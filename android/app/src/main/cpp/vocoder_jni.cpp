@@ -5,16 +5,16 @@
 static VocoderEngine *engine = nullptr;
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_create(JNIEnv *env,
-                                                           jobject thiz) {
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_create(JNIEnv *env,
+                                                       jobject thiz) {
   if (engine == nullptr) {
     engine = new VocoderEngine();
   }
 }
 
 extern "C" JNIEXPORT jboolean JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_start(JNIEnv *env,
-                                                          jobject thiz) {
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_start(JNIEnv *env,
+                                                      jobject thiz) {
   if (engine != nullptr) {
     return engine->start();
   }
@@ -22,16 +22,16 @@ Java_com_antigravity_vocodergal_audio_VocoderBridge_start(JNIEnv *env,
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_stop(JNIEnv *env,
-                                                         jobject thiz) {
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_stop(JNIEnv *env,
+                                                     jobject thiz) {
   if (engine != nullptr) {
     engine->stop();
   }
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_destroy(JNIEnv *env,
-                                                            jobject thiz) {
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_destroy(JNIEnv *env,
+                                                        jobject thiz) {
   if (engine != nullptr) {
     delete engine;
     engine = nullptr;
@@ -39,60 +39,61 @@ Java_com_antigravity_vocodergal_audio_VocoderBridge_destroy(JNIEnv *env,
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_setPitch(JNIEnv *env,
-                                                             jobject thiz,
-                                                             jfloat pitch) {
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_setPitch(JNIEnv *env,
+                                                         jobject thiz,
+                                                         jfloat pitch) {
   if (engine != nullptr) {
     engine->setPitch(pitch);
   }
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_setIntensity(
-    JNIEnv *env, jobject thiz, jfloat intensity) {
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_setIntensity(JNIEnv *env,
+                                                             jobject thiz,
+                                                             jfloat intensity) {
   if (engine != nullptr) {
     engine->setIntensity(intensity);
   }
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_setWaveform(JNIEnv *env,
-                                                                jobject thiz,
-                                                                jint type) {
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_setWaveform(JNIEnv *env,
+                                                            jobject thiz,
+                                                            jint type) {
   if (engine != nullptr) {
     engine->setWaveform(type);
   }
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_setVibrato(JNIEnv *env,
-                                                               jobject thiz,
-                                                               jfloat amount) {
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_setVibrato(JNIEnv *env,
+                                                           jobject thiz,
+                                                           jfloat amount) {
   if (engine != nullptr) {
     engine->setVibrato(amount);
   }
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_setEcho(JNIEnv *env,
-                                                            jobject thiz,
-                                                            jfloat amount) {
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_setEcho(JNIEnv *env,
+                                                        jobject thiz,
+                                                        jfloat amount) {
   if (engine != nullptr) {
     engine->setEcho(amount);
   }
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_setTremolo(JNIEnv *env,
-                                                               jobject thiz,
-                                                               jfloat amount) {
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_setTremolo(JNIEnv *env,
+                                                           jobject thiz,
+                                                           jfloat amount) {
   if (engine != nullptr) {
     engine->setTremolo(amount);
   }
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_setNoiseThreshold(
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_setNoiseThreshold(
     JNIEnv *env, jobject thiz, jfloat threshold) {
   if (engine != nullptr) {
     engine->setNoiseThreshold(threshold);
@@ -100,24 +101,25 @@ Java_com_antigravity_vocodergal_audio_VocoderBridge_setNoiseThreshold(
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_setMicActive(
-    JNIEnv *env, jobject thiz, jboolean active) {
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_setMicActive(JNIEnv *env,
+                                                             jobject thiz,
+                                                             jboolean active) {
   if (engine != nullptr) {
     engine->setMicActive(active);
   }
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_setSource(JNIEnv *env,
-                                                              jobject thiz,
-                                                              jint source) {
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_setSource(JNIEnv *env,
+                                                          jobject thiz,
+                                                          jint source) {
   if (engine != nullptr) {
     engine->setSource(source);
   }
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_loadModulatorData(
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_loadModulatorData(
     JNIEnv *env, jobject thiz, jfloatArray data) {
   if (engine != nullptr && data != nullptr) {
     jsize len = env->GetArrayLength(data);
@@ -128,7 +130,7 @@ Java_com_antigravity_vocodergal_audio_VocoderBridge_loadModulatorData(
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_setFilePlaying(
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_setFilePlaying(
     JNIEnv *env, jobject thiz, jboolean playing) {
   if (engine != nullptr) {
     engine->setFilePlaying(playing);
@@ -136,15 +138,15 @@ Java_com_antigravity_vocodergal_audio_VocoderBridge_setFilePlaying(
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_resetFileIndex(
-    JNIEnv *env, jobject thiz) {
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_resetFileIndex(JNIEnv *env,
+                                                               jobject thiz) {
   if (engine != nullptr) {
     engine->resetFileIndex();
   }
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_loadCarrierData(
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_loadCarrierData(
     JNIEnv *env, jobject thiz, jfloatArray data) {
   if (engine != nullptr && data != nullptr) {
     jsize len = env->GetArrayLength(data);
@@ -155,24 +157,24 @@ Java_com_antigravity_vocodergal_audio_VocoderBridge_loadCarrierData(
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_startRecording(
-    JNIEnv *env, jobject thiz) {
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_startRecording(JNIEnv *env,
+                                                               jobject thiz) {
   if (engine != nullptr) {
     engine->startRecording();
   }
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_stopRecording(
-    JNIEnv *env, jobject thiz) {
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_stopRecording(JNIEnv *env,
+                                                              jobject thiz) {
   if (engine != nullptr) {
     engine->stopRecording();
   }
 }
 
 extern "C" JNIEXPORT jfloat JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_getVULevel(JNIEnv *env,
-                                                               jobject thiz) {
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_getVULevel(JNIEnv *env,
+                                                           jobject thiz) {
   if (engine != nullptr) {
     return engine->getVULevel();
   }
@@ -180,8 +182,8 @@ Java_com_antigravity_vocodergal_audio_VocoderBridge_getVULevel(JNIEnv *env,
 }
 
 extern "C" JNIEXPORT jfloatArray JNICALL
-Java_com_antigravity_vocodergal_audio_VocoderBridge_getWaveformData(
-    JNIEnv *env, jobject thiz) {
+Java_com_tonetxo_vocodergal_audio_VocoderBridge_getWaveformData(JNIEnv *env,
+                                                                jobject thiz) {
   if (engine != nullptr) {
     auto data = engine->getWaveformData();
     jfloatArray result = env->NewFloatArray(data.size());

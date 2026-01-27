@@ -1,4 +1,4 @@
-package com.antigravity.vocodergal.audio
+package com.tonetxo.vocodergal.audio
 
 /**
  * Clase que envuelve las llamadas JNI al motor C++.

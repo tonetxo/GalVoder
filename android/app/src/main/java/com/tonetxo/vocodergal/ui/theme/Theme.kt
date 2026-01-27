@@ -1,4 +1,4 @@
-package com.antigravity.vocodergal.ui.theme
+package com.tonetxo.vocodergal.ui.theme
 
 import android.app.Activity
 import androidx.compose.material3.MaterialTheme

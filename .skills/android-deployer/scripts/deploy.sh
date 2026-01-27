@@ -3,7 +3,7 @@
 # Script de despliegue automático local para Aethereum
 SDK_PATH="/home/tonetxo/Android/Sdk"
 APP_PATH="/mnt/datos/Antigravity/Aethereum/android"
-PACKAGE_NAME="com.antigravity.vocodergal"
+PACKAGE_NAME="com.tonetxo.vocodergal"
 
 export ANDROID_HOME=$SDK_PATH
 export PATH=$PATH:$SDK_PATH/platform-tools

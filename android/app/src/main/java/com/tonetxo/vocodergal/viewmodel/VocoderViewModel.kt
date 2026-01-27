@@ -1,4 +1,4 @@
-package com.antigravity.vocodergal.viewmodel
+package com.tonetxo.vocodergal.viewmodel
 
 import android.content.Context
 import android.media.MediaCodec
@@ -8,7 +8,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.antigravity.vocodergal.audio.VocoderBridge
+import com.tonetxo.vocodergal.audio.VocoderBridge
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

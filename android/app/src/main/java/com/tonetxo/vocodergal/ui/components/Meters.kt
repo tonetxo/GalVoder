@@ -1,4 +1,4 @@
-package com.antigravity.vocodergal.ui.components
+package com.tonetxo.vocodergal.ui.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
-import com.antigravity.vocodergal.ui.theme.*
+import com.tonetxo.vocodergal.ui.theme.*
 import kotlin.math.cos
 import kotlin.math.sin
 

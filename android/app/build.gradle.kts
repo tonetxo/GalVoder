@@ -12,15 +12,15 @@ android {
         keystoreProperties.load(keystorePropertiesFile.inputStream())
     }
 
-    namespace = "com.antigravity.vocodergal"
+    namespace = "com.tonetxo.vocodergal"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.antigravity.vocodergal"
+        applicationId = "com.tonetxo.vocodergal"
         minSdk = 24
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 4
+        versionName = "1.0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
