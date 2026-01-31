@@ -156,8 +156,8 @@ public:
   EnvelopeFollower(float sampleRate) { setSampleRate(sampleRate); }
 
   void setSampleRate(float sampleRate) {
-    float attackMs = 2.0f;   // Más rápido para mejor definición de consonantes
-    float releaseMs = 30.0f; // Más corto para evitar "cola" excesiva
+    float attackMs = 3.0f;   // SUBIDO para eliminar clic de entrada
+    float releaseMs = 50.0f; // SUBIDO para evitar "efecto RRR" (ripple)
     mAttack = std::exp(-1.0f / (sampleRate * attackMs * 0.001f));
     mRelease = std::exp(-1.0f / (sampleRate * releaseMs * 0.001f));
   }
@@ -169,13 +169,18 @@ public:
     } else {
       mEnvelope = mRelease * mEnvelope + (1.0f - mRelease) * rectified;
     }
-    return mEnvelope;
+
+    // Suavizado de segunda etapa (LPF) para eliminar "granos" (ripple)
+    // 0.8f/0.2f fornece un bo filtrado sen añadir lag perceptible
+    mSmoothEnv = 0.8f * mSmoothEnv + 0.2f * mEnvelope;
+    return mSmoothEnv;
   }
 
 private:
   float mAttack = 0.0f;
   float mRelease = 0.0f;
   float mEnvelope = 0.0f;
+  float mSmoothEnv = 0.0f;
 };
 
 /**

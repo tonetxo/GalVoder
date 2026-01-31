@@ -223,7 +223,10 @@ void VocoderEngine::stopRecording() {
   std::lock_guard<std::mutex> lock(mRecordingMutex);
 
   if (!mRecordedData.empty()) {
-    // Normalización automática de la grabación antes de cargarla
+    // Normalización eliminada: A gravación debe conservar o nivel orixinal do
+    // micro xa que o VocoderProcessor aplica un Preamp de 10x. Se normalizamos
+    // a 0.9, o resultado sería 0.9 * 10 = 9.0 (Saturación total)
+    /*
     float maxAbs = 0.0f;
     for (float v : mRecordedData) {
       maxAbs = std::max(maxAbs, std::abs(v));
@@ -234,6 +237,7 @@ void VocoderEngine::stopRecording() {
       for (float &v : mRecordedData)
         v *= factor;
     }
+    */
 
     mModulatorFileBuffer = mRecordedData;
     mFileReadIndex = 0;

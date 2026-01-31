@@ -4,11 +4,10 @@
 
 // Constantes de procesamiento con nombres descriptivos
 static constexpr float kModulatorPreamp =
-    12.0f; // Preamplificación del modulador
+    10.0f; // Restaurado a 10.0 para equilibrio cuerpo/definición
 static constexpr float kThresholdHysteresis =
-    0.5f; // Factor de histéresis del noise gate
-static constexpr float kOutputNormalization =
-    0.55f;                                      // Normalización base de salida
+    0.4f; // Ajustado (era 0.6) para reducir salto de volumen (clic)
+static constexpr float kOutputNormalization = 0.55f; // Normalización standard
 static constexpr float kVibratoDepthHz = 20.0f; // Profundidad del vibrato en Hz
 
 constexpr std::array<float, VocoderProcessor::kNumBands>
@@ -28,8 +27,8 @@ VocoderProcessor::VocoderProcessor(float sampleRate)
   sBasePitch.setTimeConstant(tc, sampleRate);
 
   // Valores iniciales
-  sNoiseThreshold.setTarget(0.012f);
-  sIntensity.setTarget(0.8f); // Reducido para evitar saturación con mic
+  sNoiseThreshold.setTarget(0.003f); // Umbral bajo para evitar cortes
+  sIntensity.setTarget(0.8f);        // Ganancia standard
   sBasePitch.setTarget(140.0f);
 
   mEchoBuffer.resize(kEchoSamples, 0.0f);
@@ -42,15 +41,15 @@ VocoderProcessor::VocoderProcessor(float sampleRate)
   mTremoloLFO.setFrequency(6.0f);
   mTremoloLFO.setWaveform(Oscillator::Waveform::Sine);
 
-  // Filtro anti-acople (250Hz HPF - subido de 100Hz para mellor anti-feedback)
-  mModHPF.setCoefficients(250.0f, 0.707f, sampleRate);
+  // Filtro anti-acople (200Hz HPF - equilibrado)
+  mModHPF.setCoefficients(200.0f, 0.707f, sampleRate);
 
   initBands();
 }
 
 void VocoderProcessor::initBands() {
-  constexpr float Q = 18.0f; // Baixado de 25 a 18 para un son máis suave e
-                             // menos propenso a asubíos
+  constexpr float Q =
+      12.0f; // Restaurado a 12.0 para buena separación y definición
   for (int i = 0; i < kNumBands; i++) {
     mBands[i].frequency = kBandFrequencies[i];
     mBands[i].modFilter.setCoefficients(kBandFrequencies[i], Q, mSampleRate);
@@ -84,16 +83,20 @@ void VocoderProcessor::process(const float *input, const float *extCarrier,
     // Aplicar HPF para quitar retumbo de graves que causa acople
     modSample = mModHPF.process(modSample);
 
-    // Vocoding: Bandas
     float outputSample = 0.0f;
-    for (auto &band : mBands) {
-      float filteredMod = band.modFilter.process(modSample);
-      float envelope = band.envelope.process(filteredMod);
+    // Procesar cada banda
+    for (int i = 0; i < kNumBands; i++) {
+      auto &band = mBands[i];
 
-      // Porta de ruído mellorada: usamos un factor de transparencia
+      // Modulador: Filtro e seguidor de envolvente
+      float modFiltered = band.modFilter.process(modSample);
+      float envelope = band.envelope.process(modFiltered);
+
+      // Noise Gate: Solo procesar se supera o umbral
+      // Uso de histéresis para evitar flutuacións rápidas
       if (envelope > currentThreshold) {
         float filteredCar = band.carFilter.process(carrierSample);
-        // Boost de envolvente con histéresis
+        // Boost de envolvente con histéresis suave pro-rata
         float boost = (envelope - currentThreshold * kThresholdHysteresis);
         outputSample += filteredCar * boost * currentIntensity;
       }

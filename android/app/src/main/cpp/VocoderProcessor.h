@@ -64,9 +64,10 @@ private:
   static constexpr int kEchoSamples = 14400; // 300ms @ 48kHz
 
   // Frecuencias de las bandas (mismas que Aethereum)
+  // Frecuencias de las bandas OPTIMIZADAS para voz (mayor densidad en 1k-5k)
   static constexpr std::array<float, kNumBands> kBandFrequencies = {
-      120,  180,  280,  380,  500,  650,  850,  1100,  1450,  1800,
-      2200, 2700, 3400, 4200, 5200, 6500, 8000, 10000, 13000, 16000};
+      100,  160,  240,  350,  480,  640,  840,  1100, 1400,  1750,
+      2150, 2600, 3100, 3700, 4400, 5300, 6500, 8000, 10500, 14000};
 
   void initBands();
 };
